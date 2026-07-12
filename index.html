@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutoro — Home Tuitions in Hyderabad, Coordinated Tutor to Doorstep</title>
+<meta name="description" content="Tutoro matches Hyderabad parents with verified local tutors and coordinates every step — no institute to visit. Request a free demo class or start teaching near home.">
+<link rel="canonical" href="https://REPLACE_WITH_YOUR_DOMAIN/">
+
+<!-- Open Graph / social preview (WhatsApp, Facebook, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tutoro — Home Tuitions in Hyderabad">
+<meta property="og:description" content="Verified local tutors, matched to your area, with a free demo class arranged by our team.">
+<meta property="og:url" content="https://REPLACE_WITH_YOUR_DOMAIN/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tutoro — Home Tuitions in Hyderabad">
+<meta name="twitter:description" content="Verified local tutors, matched to your area, with a free demo class arranged by our team.">
+
+<!-- ===================================================================
+  SETUP NOTES (delete this comment block once you've configured things):
+  1. Search "PHONE_NUMBER_HERE" below and replace with your real number.
+  2. Search "PARENT_FORM_ENDPOINT" and "TUTOR_FORM_ENDPOINT" — sign up free
+     at formspree.io, create two forms, and paste each endpoint URL in.
+     (Free tier is plenty to start.)
+  3. To use your own domain on GitHub Pages, add a file named "CNAME"
+     (no extension) to this repo's root containing just your domain,
+     e.g. tutorohyderabad.com
+=================================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Tutoro",
+  "description": "Tutoro matches parents in Hyderabad with verified local home tutors, coordinating scheduling and a free demo class throughout.",
+  "areaServed": {
+    "@type": "City",
+    "name": "Hyderabad"
+  },
+  "telephone": "+91-PHONE_NUMBER_HERE"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is there a fee to register?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Requesting a demo class as a parent is free, and creating a tutor profile is free. Tutoro doesn't charge either side to get matched."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to visit an office?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, there's no physical institute. Everything happens over phone and WhatsApp, and classes happen at your home."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How fast will I hear back?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most requests are matched and contacted within 24 hours."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which areas do you cover?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tutoro currently covers 8 areas in Hyderabad: KPHB Colony, Kukatpally, Miyapur, Nizampet, Hafeezpet, Kondapur, Madhapur, and Gachibowli."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="wrap">
+    <div class="logo">Tutor<span>o</span></div>
+    <div class="nav-links" id="navLinks">
+      <a href="#how-it-works">How it works</a>
+      <a href="#for-parents">For parents</a>
+      <a href="#for-tutors">For tutors</a>
+      <a href="#areas">Areas</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#for-parents" class="btn btn-marigold" style="padding:10px 20px;font-size:14px;">Find a tutor</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="geo-banner" id="geoBanner"></div>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow hero-eyebrow">Hyderabad · Home Tuitions</div>
+      <h1>No institute to visit.<br>Just the <em>right tutor</em>,<br>at your door.</h1>
+      <p class="sub">Tutoro connects parents and tutors across Hyderabad — with our team coordinating every step. Tell us what your child needs, get matched with a verified tutor nearby, and start with a free demo class arranged by us — usually within 24 hours.</p>
+      <div class="hero-actions">
+        <a href="#for-parents" class="btn btn-marigold">Find a tutor for my child</a>
+        <a href="#for-tutors" class="btn btn-outline">I want to teach</a>
+      </div>
+      <div class="hero-note"><span class="dot"></span> New on Tutoro — we're personally onboarding our first tutors and families in Hyderabad this month.</div>
+    </div>
+
+    <div class="route-card">
+      <div class="route-label">Live match, illustrated</div>
+      <svg class="route-svg" viewBox="0 0 460 220" xmlns="http://www.w3.org/2000/svg">
+        <path class="route-dash" d="M 60 170 C 140 60, 300 190, 400 60" stroke="#F0A93E" stroke-width="2" fill="none" opacity="0.8"/>
+        <circle cx="60" cy="170" r="26" fill="#2E8B7A"/>
+        <text x="60" y="176" text-anchor="middle" font-size="20" fill="#fff" font-family="Inter">🏠</text>
+        <circle class="route-pulse" cx="400" cy="60" r="26" fill="#F0A93E"/>
+        <text x="400" y="66" text-anchor="middle" font-size="20" fill="#142033" font-family="Inter">🎓</text>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-light-muted);margin-top:-6px;">
+        <div><strong style="color:var(--text-light);">Ananya</strong><br>Class 8 · Maths · Madhapur</div>
+        <div style="text-align:right;"><strong style="color:var(--text-light);">Kiran</strong><br>B.Tech · 4 yrs · Madhapur</div>
+      </div>
+      <div class="route-footer">
+        <div class="stat">2.3 KM<span>apart</span></div>
+        <div class="stat">VERIFIED<span>tutor ID checked</span></div>
+        <div class="stat">&lt; 24 HRS<span>to first contact</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="trust-strip">
+  <div class="wrap">
+    <div class="trust-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z" stroke="#2E8B7A" stroke-width="1.8"/></svg> ID-checked tutors only</div>
+    <div class="trust-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12h4l3 8 4-16 3 8h4" stroke="#2E8B7A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Free demo class, no commitment</div>
+    <div class="trust-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2E8B7A" stroke-width="1.8"/><path d="M12 7v5l3 3" stroke="#2E8B7A" stroke-width="1.8" stroke-linecap="round"/></svg> Matched within 24 hours</div>
+    <div class="trust-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 5.5 5.5 5.5 0 0121.5 12c-2.5 4.5-9.5 9-9.5 9z" stroke="#2E8B7A" stroke-width="1.8"/></svg> Tutoro stays your point of contact throughout</div>
+  </div>
+</div>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section id="how-it-works">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Two sides, one straightforward path.</h2>
+      <p>Whether you're looking for a tutor or looking to teach, the process is the same on purpose — simple, direct, and fast.</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="parent-steps">For parents</button>
+      <button class="tab-btn" data-tab="tutor-steps">For tutors</button>
+    </div>
+
+    <div class="tab-panel active" id="parent-steps">
+      <div class="steps">
+        <div class="step"><div class="num">01</div><h3>Tell us what you need</h3><p>Subject, class, preferred timing, and your area — takes under two minutes.</p></div>
+        <div class="step"><div class="num">02</div><h3>We match a tutor nearby</h3><p>We personally check tutor fit for subject, board, and distance from your home.</p></div>
+        <div class="step"><div class="num">03</div><h3>Free demo class</h3><p>Meet the tutor, see the teaching style, no payment or commitment involved.</p></div>
+        <div class="step"><div class="num">04</div><h3>Continue with support</h3><p>Like the demo? We keep coordinating scheduling, payments, and any changes going forward.</p></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tutor-steps">
+      <div class="steps">
+        <div class="step"><div class="num">01</div><h3>Create your profile</h3><p>Subjects, classes, experience, area you can cover, and your expected fee.</p></div>
+        <div class="step"><div class="num">02</div><h3>Get matched to requests</h3><p>We send you real parent requests near your area — no cold-calling for leads.</p></div>
+        <div class="step"><div class="num">03</div><h3>Take the free demo</h3><p>Meet the family, teach one trial class, decide together if it's a fit.</p></div>
+        <div class="step"><div class="num">04</div><h3>Start teaching, stay supported</h3><p>You set your fee and teach. Tutoro stays in the loop for scheduling, renewals, and any issues.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOR PARENTS ================= -->
+<section id="for-parents">
+  <div class="wrap form-section">
+    <div class="form-copy">
+      <div class="eyebrow" style="color:var(--teal);">For parents</div>
+      <h2>Book a free demo class</h2>
+      <p>Fill this in and we'll personally match your child with a verified tutor nearby — usually within 24 hours.</p>
+      <ul>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#2E8B7A" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#2E8B7A" stroke-width="1.6"/></svg> No agency fee to request a demo</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#2E8B7A" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#2E8B7A" stroke-width="1.6"/></svg> Tutors matched by subject, board and distance</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#2E8B7A" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#2E8B7A" stroke-width="1.6"/></svg> Talk to a real person on WhatsApp, anytime</li>
+      </ul>
+    </div>
+
+    <div class="card-form">
+      <form id="parentForm" action="PARENT_FORM_ENDPOINT" method="POST">
+        <div class="field-row">
+          <div class="field"><label>Parent / Guardian name <span class="req">*</span></label><input type="text" name="name" required></div>
+          <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" required></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Child's class / grade <span class="req">*</span></label>
+            <select name="grade" required>
+              <option value="">Select class</option>
+              <option>Class 1–5</option><option>Class 6–8</option><option>Class 9–10</option><option>Class 11–12</option><option>Degree</option>
+            </select>
+          </div>
+          <div class="field"><label>Subject needed <span class="req">*</span></label><input type="text" name="subject" placeholder="Maths, Physics, English…" required></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Area / locality <span class="req">*</span></label><input type="text" name="area" placeholder="e.g. Kukatpally" required></div>
+          <div class="field"><label>Preferred timing</label><input type="text" name="timing" placeholder="Evening 6–7 PM"></div>
+        </div>
+        <button type="submit" class="btn btn-teal form-submit">Request free demo class</button>
+      </form>
+      <div class="form-success" id="parentSuccess">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#2E8B7A" stroke-width="1.6"/><path d="M8 12l3 3 5-6" stroke="#2E8B7A" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <h3>Request received</h3>
+        <p>We'll message you on WhatsApp within 24 hours with a matched tutor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOR TUTORS ================= -->
+<section id="for-tutors">
+  <div class="wrap form-section">
+    <div class="form-copy">
+      <div class="eyebrow" style="color:var(--marigold-dark);">For tutors</div>
+      <h2>Start teaching near home</h2>
+      <p>Create a profile once. We'll send you real parent requests that match your subjects and area — no cold outreach needed.</p>
+      <ul>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> You set your fee — terms shared clearly when you join</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> Choose your own hours and areas</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> Be a founding tutor as Tutoro grows in Hyderabad</li>
+      </ul>
+    </div>
+
+    <div class="card-form">
+      <form id="tutorForm" action="TUTOR_FORM_ENDPOINT" method="POST">
+        <div class="field-row">
+          <div class="field"><label>Full name <span class="req">*</span></label><input type="text" name="name" required></div>
+          <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" required></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Subjects you teach <span class="req">*</span></label><input type="text" name="subjects" placeholder="Maths, Science…" required></div>
+          <div class="field"><label>Classes you teach <span class="req">*</span></label><input type="text" name="classes" placeholder="6–10, 11–12…" required></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Area you can cover <span class="req">*</span></label><input type="text" name="area" placeholder="e.g. Ameerpet" required></div>
+          <div class="field"><label>Years of experience</label><input type="text" name="experience" placeholder="e.g. 3 years"></div>
+        </div>
+        <div class="field"><label>Expected fee</label><input type="text" name="fee" placeholder="e.g. ₹600/hr or ₹4000/month"></div>
+        <button type="submit" class="btn btn-marigold form-submit">Create tutor profile</button>
+      </form>
+      <div class="form-success" id="tutorSuccess">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#F0A93E" stroke-width="1.6"/><path d="M8 12l3 3 5-6" stroke="#F0A93E" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <h3>Profile created</h3>
+        <p>We'll message you on WhatsApp as soon as a request matches your area and subjects.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LOCALITIES ================= -->
+<section id="areas">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow" style="color:var(--teal);">Hyderabad · KPHB &amp; Kondapur Belt</div>
+      <h2>Deeply local, on purpose</h2>
+      <p>Tutoro is focused on 8 neighbourhoods right now, not spread thin across the city. We match parents and tutors within the same area first — less travel, faster demo classes, tutors who actually know the area.</p>
+    </div>
+    <div class="locality-grid">
+      <a href="areas/home-tuition-in-kphb-colony.html" class="locality-chip">KPHB Colony</a>
+      <a href="areas/home-tuition-in-kukatpally.html" class="locality-chip">Kukatpally</a>
+      <a href="areas/home-tuition-in-miyapur.html" class="locality-chip">Miyapur</a>
+      <a href="areas/home-tuition-in-nizampet.html" class="locality-chip">Nizampet</a>
+      <a href="areas/home-tuition-in-hafeezpet.html" class="locality-chip">Hafeezpet</a>
+      <a href="areas/home-tuition-in-kondapur.html" class="locality-chip">Kondapur</a>
+      <a href="areas/home-tuition-in-madhapur.html" class="locality-chip">Madhapur</a>
+      <a href="areas/home-tuition-in-gachibowli.html" class="locality-chip">Gachibowli</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq" style="background:var(--paper-2);">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow" style="color:var(--marigold-dark);">Questions</div>
+      <h2>Before you apply</h2>
+    </div>
+    <div style="max-width:760px;">
+      <details class="faq-item" open>
+        <summary>Is there a fee to register? <span class="icon">+</span></summary>
+        <p>No. Requesting a demo class as a parent is free, and creating a tutor profile is free. Tutoro doesn't charge either side to get matched.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do I need to visit an office? <span class="icon">+</span></summary>
+        <p>No — there's no physical institute. Everything happens over phone and WhatsApp, and classes happen at your home.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How fast will I hear back? <span class="icon">+</span></summary>
+        <p>Most requests are matched and contacted within 24 hours. As we're personally onboarding tutors right now, response can be even faster.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Which areas do you cover? <span class="icon">+</span></summary>
+        <p>We're actively expanding across Hyderabad, prioritising areas with both an active parent request and a matching tutor nearby.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="logo">Tutor<span>o</span></div>
+        <p>Matching Hyderabad families with local tutors, and staying with you at every step — no institute to visit, just a good match, coordinated.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#for-parents">For parents</a></li>
+          <li><a href="#for-tutors">For tutors</a></li>
+          <li><a href="#areas">Areas covered</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>📞 +91 PHONE_NUMBER_HERE</li>
+          <li>📍 Hyderabad, Telangana</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Tutoro. All rights reserved.</span>
+      <span>Built in Hyderabad, for Hyderabad.</span>
+    </div>
+  </div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/91PHONE_NUMBER_HERE" target="_blank" aria-label="Chat on WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.18-1.77 1.24-.45.06-1.02.08-1.65-.1-.38-.11-.87-.28-1.5-.55-2.63-1.14-4.35-3.8-4.48-3.98-.13-.18-1.08-1.43-1.08-2.73 0-1.3.68-1.94.92-2.2.24-.27.53-.33.71-.33.18 0 .35 0 .5.01.16.01.38-.06.6.45.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.13.29-.27.44-.13.16-.28.35-.4.47-.13.13-.27.27-.12.53.16.27.7 1.15 1.5 1.86 1.03.92 1.9 1.2 2.17 1.34.27.13.42.11.58-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.27.13.45.2.51.31.07.11.07.65-.15 1.27z"/></svg>
+</a>
+
+<script src="assets/script.js"></script>
+
+</body>
+</html>
