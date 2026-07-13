@@ -2,6 +2,27 @@
 // Tutoro — shared site script (used by index.html and all /areas/ pages)
 // ===================================================================
 
+// ===================================================================
+// API CONNECTION
+// Replace this with your real Render URL once deployed, e.g.
+// 'https://tutoro-backend.onrender.com'
+// ===================================================================
+var TUTORO_API_BASE = 'https://tutoro-backend-zz25.onrender.com';
+
+// Field-name mapping: HTML form field -> backend API field.
+// Kept explicit and separate from the HTML so form markup never needs
+// to change even if the API's field names do.
+var PARENT_LEAD_FIELD_MAP = {
+  name: 'name', phone: 'phone_number', grade: 'student_class',
+  subject: 'subject', area: 'area', timing: 'preferred_timing',
+};
+var TUTOR_LEAD_FIELD_MAP = {
+  name: 'name', phone: 'phone_number', area: 'area',
+  subjects: 'subjects', classes: 'classes',
+  experience: 'experience', fee: 'expected_fee',
+};
+
+
 // Mobile nav toggle
 (function(){
   var toggle = document.getElementById('navToggle');
@@ -23,33 +44,109 @@ document.querySelectorAll('.tab-btn').forEach(function(btn){
   });
 });
 
-// Form submission (Formspree-style fetch, falls back gracefully in demo mode)
-function handleFormSubmit(formId, successId){
-  var form = document.getElementById(formId);
-  if(!form) return;
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var data = new FormData(form);
-    var endpoint = form.getAttribute('action');
+// ===================================================================
+// Populate area dropdowns from the live backend catalog.
+// If this fails (API not deployed yet, network issue), the static
+// fallback options already in the HTML remain untouched -- the form
+// still works, just without picking up any admin-side area changes.
+// ===================================================================
+(function () {
+  var selects = document.querySelectorAll('.area-select');
+  if (!selects.length) return;
 
-    // If endpoint hasn't been configured yet, just show success (demo mode)
-    if(!endpoint || endpoint.indexOf('_ENDPOINT') !== -1){
-      form.style.display = 'none';
-      document.getElementById(successId).classList.add('show');
-      return;
-    }
+  fetch(TUTORO_API_BASE + '/api/catalog/areas/')
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      var areas = data.results || data;
+      if (!Array.isArray(areas) || !areas.length) return;
 
-    fetch(endpoint, {
-      method: 'POST',
-      body: data,
-      headers: { 'Accept': 'application/json' }
-    }).then(function(response){
-      form.style.display = 'none';
-      document.getElementById(successId).classList.add('show');
-    }).catch(function(){
-      form.style.display = 'none';
-      document.getElementById(successId).classList.add('show');
+      selects.forEach(function (select) {
+        var currentValue = select.value;
+        select.innerHTML = '<option value="">Select your area</option>';
+        areas.forEach(function (area) {
+          var opt = document.createElement('option');
+          opt.value = area.name;
+          opt.textContent = area.name;
+          select.appendChild(opt);
+        });
+        if (currentValue) select.value = currentValue;
+      });
+    })
+    .catch(function () {
+      // Silent fail -- static fallback options already in the HTML stay as-is.
     });
+})();
+
+function getOrCreateErrorBox(form) {
+  var existing = form.querySelector('.form-error-box');
+  if (existing) return existing;
+  var box = document.createElement('div');
+  box.className = 'form-error-box';
+  box.style.cssText = 'display:none;background:#fdecea;color:#b3261e;' +
+    'border:1px solid #f5c6c2;border-radius:8px;padding:10px 14px;' +
+    'font-size:13.5px;margin-bottom:14px;';
+  var submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.parentNode.insertBefore(box, submitBtn);
+  return box;
+}
+
+function submitLead(form, endpointPath, fieldMap, successId) {
+  var errorBox = getOrCreateErrorBox(form);
+  var formData = new FormData(form);
+  var payload = {};
+  for (var htmlField in fieldMap) {
+    payload[fieldMap[htmlField]] = formData.get(htmlField) || '';
+  }
+
+  errorBox.style.display = 'none';
+  var submitBtn = form.querySelector('button[type="submit"]');
+  var originalBtnText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending...';
+
+  fetch(TUTORO_API_BASE + endpointPath, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+    .then(function (response) {
+      if (response.status === 201) {
+        form.style.display = 'none';
+        document.getElementById(successId).classList.add('show');
+        return null;
+      }
+      return response.json().then(function (data) { throw data; });
+    })
+    .catch(function (err) {
+      // Show the backend's actual validation message when we have one
+      // (e.g. "that area isn't supported yet") rather than a generic error.
+      var message = 'Something went wrong. Please try WhatsApp instead.';
+      if (err && typeof err === 'object') {
+        var firstKey = Object.keys(err)[0];
+        if (firstKey && Array.isArray(err[firstKey])) {
+          message = err[firstKey][0];
+        }
+      }
+      errorBox.textContent = message;
+      errorBox.style.display = 'block';
+    })
+    .finally(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
+    });
+}
+
+function handleFormSubmit(formId, successId) {
+  var form = document.getElementById(formId);
+  if (!form) return;
+
+  var isParentForm = formId === 'parentForm';
+  var endpointPath = isParentForm ? '/api/leads/parent/' : '/api/leads/tutor/';
+  var fieldMap = isParentForm ? PARENT_LEAD_FIELD_MAP : TUTOR_LEAD_FIELD_MAP;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    submitLead(form, endpointPath, fieldMap, successId);
   });
 }
 handleFormSubmit('parentForm', 'parentSuccess');
