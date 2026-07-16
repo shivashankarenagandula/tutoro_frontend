@@ -7,7 +7,7 @@
 // Replace this with your real Render URL once deployed, e.g.
 // 'https://tutoro-backend.onrender.com'
 // ===================================================================
-var TUTORO_API_BASE = 'https://tutoro-backend-zz25.onrender.com';
+var TUTORO_API_BASE = 'https://REPLACE_WITH_YOUR_RENDER_URL.onrender.com';
 
 // Field-name mapping: HTML form field -> backend API field.
 // Kept explicit and separate from the HTML so form markup never needs
@@ -15,11 +15,13 @@ var TUTORO_API_BASE = 'https://tutoro-backend-zz25.onrender.com';
 var PARENT_LEAD_FIELD_MAP = {
   name: 'name', phone: 'phone_number', grade: 'student_class',
   subject: 'subject', area: 'area', timing: 'preferred_timing',
+  website: 'website',
 };
 var TUTOR_LEAD_FIELD_MAP = {
   name: 'name', phone: 'phone_number', area: 'area',
   subjects: 'subjects', classes: 'classes',
   experience: 'experience', fee: 'expected_fee',
+  website: 'website',
 };
 
 
@@ -90,6 +92,8 @@ function getOrCreateErrorBox(form) {
   return box;
 }
 
+var PHONE_PATTERN = /^(?:\+91|91|0)?[6-9]\d{9}$/;
+
 function submitLead(form, endpointPath, fieldMap, successId) {
   var errorBox = getOrCreateErrorBox(form);
   var formData = new FormData(form);
@@ -99,6 +103,17 @@ function submitLead(form, endpointPath, fieldMap, successId) {
   }
 
   errorBox.style.display = 'none';
+
+  // Catch an obviously wrong number before it ever reaches the server --
+  // same rule as the backend, so it never disagrees with what actually
+  // gets accepted.
+  var rawPhone = (payload.phone_number || '').replace(/\s|-/g, '');
+  if (!PHONE_PATTERN.test(rawPhone)) {
+    errorBox.textContent = 'Please enter a valid 10-digit Indian mobile number.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
   var submitBtn = form.querySelector('button[type="submit"]');
   var originalBtnText = submitBtn.textContent;
   submitBtn.disabled = true;
