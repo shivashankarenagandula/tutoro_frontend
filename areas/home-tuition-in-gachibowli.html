@@ -30,7 +30,7 @@
   "provider": {
     "@type": "Organization",
     "name": "Tutoro",
-    "telephone": "+91-PHONE_NUMBER_HERE"
+    "telephone": "+91-9347696298"
   },
   "areaServed": {
     "@type": "Place",
@@ -48,7 +48,7 @@
   "provider": {
     "@type": "Organization",
     "name": "Tutoro",
-    "telephone": "+91-PHONE_NUMBER_HERE"
+    "telephone": "+91-9347696298"
   },
   "areaServed": {
     "@type": "Place",
@@ -132,10 +132,11 @@
     <div class="mini-card-form" id="request">
       <h3>Book a free demo in Gachibowli</h3>
       <p class="form-note">We'll message you on WhatsApp within 24 hours.</p>
-      <form id="parentForm" action="PARENT_FORM_ENDPOINT" method="POST">
+      <form id="parentForm" method="POST">
+        <div class="hp-field" aria-hidden="true"><label>Leave this field empty</label><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
         <input type="hidden" name="area" value="Gachibowli">
         <div class="field"><label>Parent / Guardian name <span class="req">*</span></label><input type="text" name="name" required></div>
-        <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" required></div>
+        <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" inputmode="numeric" maxlength="13" placeholder="10-digit mobile number" required></div>
         <div class="field-row">
           <div class="field"><label>Child's class <span class="req">*</span></label>
             <select name="grade" required>
