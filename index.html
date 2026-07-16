@@ -41,7 +41,7 @@
     "@type": "City",
     "name": "Hyderabad"
   },
-  "telephone": "+91 9347696298"
+  "telephone": "+91-PHONE_NUMBER_HERE"
 }
 </script>
 <script type="application/ld+json">
@@ -201,10 +201,11 @@
     </div>
 
     <div class="card-form">
-      <form id="parentForm" action="PARENT_FORM_ENDPOINT" method="POST">
+      <form id="parentForm" method="POST">
+        <div class="hp-field" aria-hidden="true"><label>Leave this field empty</label><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field-row">
           <div class="field"><label>Parent / Guardian name <span class="req">*</span></label><input type="text" name="name" required></div>
-          <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" required></div>
+          <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" inputmode="numeric" maxlength="13" placeholder="10-digit mobile number" required></div>
         </div>
         <div class="field-row">
           <div class="field"><label>Child's class / grade <span class="req">*</span></label>
@@ -216,7 +217,19 @@
           <div class="field"><label>Subject needed <span class="req">*</span></label><input type="text" name="subject" placeholder="Maths, Physics, English…" required></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Area / locality <span class="req">*</span></label><input type="text" name="area" placeholder="e.g. Kukatpally" required></div>
+          <div class="field"><label>Area / locality <span class="req">*</span></label>
+            <select name="area" class="area-select" required>
+              <option value="">Select your area</option>
+              <option>KPHB Colony</option>
+              <option>Kukatpally</option>
+              <option>Miyapur</option>
+              <option>Nizampet</option>
+              <option>Hafeezpet</option>
+              <option>Kondapur</option>
+              <option>Madhapur</option>
+              <option>Gachibowli</option>
+            </select>
+          </div>
           <div class="field"><label>Preferred timing</label><input type="text" name="timing" placeholder="Evening 6–7 PM"></div>
         </div>
         <button type="submit" class="btn btn-teal form-submit">Request free demo class</button>
@@ -238,24 +251,37 @@
       <h2>Start teaching near home</h2>
       <p>Create a profile once. We'll send you real parent requests that match your subjects and area — no cold outreach needed.</p>
       <ul>
-        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> You set your fee — terms shared clearly when you join</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> Zero commission for your first 2 months as a founding tutor</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> You set your fee, you keep it</li>
         <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> Choose your own hours and areas</li>
-        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#F0A93E" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#F0A93E" stroke-width="1.6"/></svg> Be a founding tutor as Tutoro grows in Hyderabad</li>
       </ul>
     </div>
 
     <div class="card-form">
-      <form id="tutorForm" action="TUTOR_FORM_ENDPOINT" method="POST">
+      <form id="tutorForm" method="POST">
+        <div class="hp-field" aria-hidden="true"><label>Leave this field empty</label><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field-row">
           <div class="field"><label>Full name <span class="req">*</span></label><input type="text" name="name" required></div>
-          <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" required></div>
+          <div class="field"><label>Contact number <span class="req">*</span></label><input type="tel" name="phone" inputmode="numeric" maxlength="13" placeholder="10-digit mobile number" required></div>
         </div>
         <div class="field-row">
           <div class="field"><label>Subjects you teach <span class="req">*</span></label><input type="text" name="subjects" placeholder="Maths, Science…" required></div>
           <div class="field"><label>Classes you teach <span class="req">*</span></label><input type="text" name="classes" placeholder="6–10, 11–12…" required></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Area you can cover <span class="req">*</span></label><input type="text" name="area" placeholder="e.g. Ameerpet" required></div>
+          <div class="field"><label>Area you can cover <span class="req">*</span></label>
+            <select name="area" class="area-select" required>
+              <option value="">Select your area</option>
+              <option>KPHB Colony</option>
+              <option>Kukatpally</option>
+              <option>Miyapur</option>
+              <option>Nizampet</option>
+              <option>Hafeezpet</option>
+              <option>Kondapur</option>
+              <option>Madhapur</option>
+              <option>Gachibowli</option>
+            </select>
+          </div>
           <div class="field"><label>Years of experience</label><input type="text" name="experience" placeholder="e.g. 3 years"></div>
         </div>
         <div class="field"><label>Expected fee</label><input type="text" name="fee" placeholder="e.g. ₹600/hr or ₹4000/month"></div>
