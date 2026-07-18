@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check Your Request Status — Tutoro</title>
+<meta name="description" content="Check the status of your Tutoro home tuition request or tutor application using your name and phone number.">
+<link rel="canonical" href="https://tutorohometuitions.netlify.app/status.html">
+<meta name="robots" content="noindex, follow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="index.html" style="text-decoration:none;"><div class="logo">Tutor<span>o</span></div></a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="index.html#for-parents">For parents</a>
+      <a href="index.html#for-tutors">For tutors</a>
+      <a href="status.html">Check status</a>
+    </div>
+    <div class="nav-cta">
+      <a href="index.html#for-parents" class="btn btn-marigold" style="padding:10px 20px;font-size:14px;">Find a tutor</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" style="padding:64px 0 72px;">
+  <div class="wrap" style="max-width:560px;">
+    <div class="eyebrow hero-eyebrow">Check status</div>
+    <h1 style="font-size:clamp(28px,3.6vw,40px);">Where's my request?</h1>
+    <p class="sub">Enter the same name and phone number you used when you submitted your request, and we'll show you where things stand.</p>
+
+    <div class="mini-card-form" style="margin-top:8px;">
+      <form id="statusForm" method="POST">
+        <div class="field"><label>Your name <span class="req">*</span></label><input type="text" name="name" required></div>
+        <div class="field"><label>Phone number <span class="req">*</span></label><input type="tel" name="phone_number" inputmode="numeric" maxlength="13" placeholder="10-digit mobile number" required></div>
+        <button type="submit" class="btn btn-teal form-submit">Check status</button>
+      </form>
+
+      <div id="statusResults" style="display:none;margin-top:22px;"></div>
+      <div id="statusError" style="display:none;margin-top:16px;background:#fdecea;color:#b3261e;border:1px solid #f5c6c2;border-radius:8px;padding:12px 16px;font-size:13.5px;"></div>
+    </div>
+
+    <p style="margin-top:20px;font-size:13.5px;color:var(--text-light-muted);">
+      Can't find your request, or need faster help? <a href="https://wa.me/919347696298" style="color:var(--marigold);">Message us on WhatsApp</a> directly.
+    </p>
+  </div>
+</header>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <span>© 2026 Tutoro. All rights reserved.</span>
+      <a href="index.html" style="color:var(--text-light-muted);">Back to home</a>
+    </div>
+  </div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/919347696298" target="_blank" aria-label="Chat on WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.18-1.77 1.24-.45.06-1.02.08-1.65-.1-.38-.11-.87-.28-1.5-.55-2.63-1.14-4.35-3.8-4.48-3.98-.13-.18-1.08-1.43-1.08-2.73 0-1.3.68-1.94.92-2.2.24-.27.53-.33.71-.33.18 0 .35 0 .5.01.16.01.38-.06.6.45.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.13.29-.27.44-.13.16-.28.35-.4.47-.13.13-.27.27-.12.53.16.27.7 1.15 1.5 1.86 1.03.92 1.9 1.2 2.17 1.34.27.13.42.11.58-.07.16-.18.68-.79.86-1.06.18-.27.36-.22.6-.13.24.09 1.53.72 1.79.85.27.13.45.2.51.31.07.11.07.65-.15 1.27z"/></svg>
+</a>
+
+<script src="assets/script.js"></script>
+<script>
+document.getElementById('statusForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var form = e.target;
+  var name = form.name.value.trim();
+  var phone = form.phone_number.value.trim();
+  var resultsBox = document.getElementById('statusResults');
+  var errorBox = document.getElementById('statusError');
+  var submitBtn = form.querySelector('button[type="submit"]');
+
+  resultsBox.style.display = 'none';
+  errorBox.style.display = 'none';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Checking...';
+
+  fetch(TUTORO_API_BASE + '/api/leads/status/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name, phone_number: phone }),
+  })
+    .then(function(res){ return res.json().then(function(data){ return { status: res.status, data: data }; }); })
+    .then(function(result){
+      if (result.status === 200 && result.data.results && result.data.results.length){
+        var html = '';
+        result.data.results.forEach(function(item){
+          var label = item.type === 'parent' ? 'Home tuition request' : 'Tutor application';
+          html += '<div style="border:1px solid var(--paper-2);border-radius:10px;padding:16px;margin-bottom:12px;">' +
+            '<div style="font-family:var(--mono);font-size:11px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">' + label + '</div>' +
+            '<div style="font-weight:600;margin-bottom:4px;">' + item.status_display + '</div>' +
+            '<div style="font-size:13px;color:var(--text-muted);">' + item.area + ' · Submitted ' + item.submitted + '</div>' +
+            '</div>';
+        });
+        resultsBox.innerHTML = html;
+        resultsBox.style.display = 'block';
+      } else {
+        errorBox.textContent = (result.data && result.data.detail) || 'No request found with that name and phone number.';
+        errorBox.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      errorBox.textContent = 'Something went wrong. Please try WhatsApp instead.';
+      errorBox.style.display = 'block';
+    })
+    .finally(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Check status';
+    });
+});
+</script>
+
+</body>
+</html>
