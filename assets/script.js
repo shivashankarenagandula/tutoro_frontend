@@ -217,3 +217,48 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
       // Silent fail — no banner, no error shown to visitor
     });
 })();
+
+
+// ===================================================================
+// LIVE MATCH CARD — per-area, fetched from the real backend.
+// Falls back silently to the static placeholder already in the HTML
+// if the API is unreachable or returns nothing.
+// ===================================================================
+(function () {
+  var cards = document.querySelectorAll('.route-card[data-area]');
+  if (!cards.length) return;
+
+  cards.forEach(function (card) {
+    var areaName = card.getAttribute('data-area');
+    fetch(TUTORO_API_BASE + '/api/matching/recent-match/?area=' + encodeURIComponent(areaName))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var studentNameEl = card.querySelector('#liveMatchStudentName') || card.querySelector('[id$="StudentName"]');
+        var studentDetailEl = card.querySelector('#liveMatchStudentDetail') || card.querySelector('[id$="StudentDetail"]');
+        var tutorNameEl = card.querySelector('#liveMatchTutorName') || card.querySelector('[id$="TutorName"]');
+        var tutorDetailEl = card.querySelector('#liveMatchTutorDetail') || card.querySelector('[id$="TutorDetail"]');
+        var distanceEl = card.querySelector('#liveMatchDistance') || card.querySelector('[id$="Distance"]');
+        var verifiedEl = card.querySelector('#liveMatchVerified') || card.querySelector('[id$="Verified"]');
+
+        if (studentNameEl) studentNameEl.textContent = data.student_display_name;
+        if (studentDetailEl) studentDetailEl.textContent =
+          data.student_class_display + ' · ' + data.subject + ' · ' + data.area_name;
+
+        if (tutorNameEl) tutorNameEl.textContent = data.tutor_name;
+        if (tutorDetailEl) tutorDetailEl.textContent =
+          data.tutor_qualification + ' · ' + data.tutor_experience_years + ' yrs · ' + data.area_name;
+
+        if (distanceEl) {
+          var distText = (data.distance_km !== null && data.distance_km !== undefined)
+            ? data.distance_km + ' KM' : 'NEARBY';
+          distanceEl.innerHTML = distText + '<span>apart</span>';
+        }
+        if (verifiedEl) {
+          verifiedEl.innerHTML = (data.tutor_verified ? 'VERIFIED' : 'IN REVIEW') + '<span>tutor ID checked</span>';
+        }
+      })
+      .catch(function () {
+        // Silent fail — static placeholder already in the HTML stays as-is.
+      });
+  });
+})();
