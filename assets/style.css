@@ -460,3 +460,11 @@
 @media (max-width:960px){
   .locality-hero .wrap{grid-template-columns:1fr;}
 }
+
+/* Route/live-match card needs a dark backdrop on pages where it isn't
+   already inside the dark hero header (the /areas/ locality pages) */
+section:has(> .wrap > .route-card){
+  background:radial-gradient(1200px 600px at 80% -10%, #1c2c47 0%, var(--ink) 55%, var(--ink-2) 100%);
+  padding-top:44px;
+  padding-bottom:44px;
+}
