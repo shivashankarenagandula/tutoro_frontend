@@ -97,8 +97,9 @@
       <a href="#faq">FAQ</a>
       <a href="status.html">Check status</a>
     </div>
-    <div class="nav-cta">
-      <a href="#for-parents" class="btn btn-marigold" style="padding:10px 20px;font-size:14px;">Find a tutor</a>
+  <div class="nav-cta">
+  <button type="button" class="btn btn-outline-dark" id="authNavBtn" style="padding:10px 18px;font-size:14px;">Log in</button>
+  <a href="#for-parents" class="btn btn-marigold" style="padding:10px 20px;font-size:14px;">Find a tutor</a>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
     </div>
   </div>
@@ -408,6 +409,77 @@
 <div class="sticky-mobile-cta" id="stickyMobileCta">
   <a href="#for-parents" class="btn btn-marigold">Find a Tutor</a>
   <a href="#for-tutors" class="btn btn-outline-dark" style="border-color:rgba(255,255,255,.3);color:#fff;">Teach</a>
+</div>
+
+<!-- ================= AUTH MODAL (login / signup) ================= -->
+<div class="auth-modal-overlay" id="authModalOverlay">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <button type="button" class="auth-modal-close" id="authModalClose" aria-label="Close">✕</button>
+
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab-btn active" data-auth-tab="login">Log in</button>
+      <button type="button" class="auth-tab-btn" data-auth-tab="signup">Sign up</button>
+    </div>
+
+    <!-- LOGGED-IN VIEW -->
+    <div class="auth-panel" id="authPanel-account">
+      <h3 id="authModalTitle">Your account</h3>
+      <div id="accountDetails"></div>
+      <button type="button" class="btn btn-outline-dark" id="logoutBtn" style="width:100%;margin-top:14px;">Log out</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-panel active" id="authPanel-login">
+      <h3>Welcome back</h3>
+      <form id="loginForm">
+        <div class="field"><label>Email</label><input type="email" name="email" required></div>
+        <div class="field"><label>Password</label><input type="password" name="password" required></div>
+        <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Log in</button>
+      </form>
+    </div>
+
+    <!-- SIGN UP -->
+    <div class="auth-panel" id="authPanel-signup">
+      <h3>Create your account</h3>
+      <div class="auth-role-toggle">
+        <button type="button" class="auth-role-btn active" data-role="parent">I'm a parent</button>
+        <button type="button" class="auth-role-btn" data-role="tutor">I'm a tutor</button>
+      </div>
+
+      <form id="parentSignupForm" class="auth-role-form active">
+        <div class="field"><label>Full name</label><input type="text" name="full_name" required></div>
+        <div class="field-row">
+          <div class="field"><label>Email</label><input type="email" name="email" required></div>
+          <div class="field"><label>Phone</label><input type="tel" name="phone_number" required></div>
+        </div>
+        <div class="field"><label>Password (min 8 characters)</label><input type="password" name="password" minlength="8" required></div>
+        <div class="field"><label>Area</label>
+          <select name="area" class="area-select-id" required><option value="">Select your area</option></select>
+        </div>
+        <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Create parent account</button>
+      </form>
+
+      <form id="tutorSignupForm" class="auth-role-form">
+        <div class="field"><label>Full name</label><input type="text" name="full_name" required></div>
+        <div class="field-row">
+          <div class="field"><label>Email</label><input type="email" name="email" required></div>
+          <div class="field"><label>Phone</label><input type="tel" name="phone_number" required></div>
+        </div>
+        <div class="field"><label>Password (min 8 characters)</label><input type="password" name="password" minlength="8" required></div>
+        <div class="field"><label>Subjects you teach <span class="req">*</span></label>
+          <select name="subjects" class="subject-select-id" multiple required></select>
+        </div>
+        <div class="field"><label>Areas you can cover <span class="req">*</span></label>
+          <select name="preferred_areas" class="area-select-id" multiple required></select>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Years of experience</label><input type="number" name="experience_years" min="0" value="0"></div>
+          <div class="field"><label>Expected fee (₹)</label><input type="number" name="expected_fee" min="0"></div>
+        </div>
+        <button type="submit" class="btn btn-marigold form-submit" style="width:100%;">Create tutor account</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script src="assets/script.js"></script>
