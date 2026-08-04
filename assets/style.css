@@ -301,6 +301,14 @@
     outline:none;border-color:var(--teal);background:#fff;
   }
   .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .consent-field{margin-top:2px;margin-bottom:14px;}
+  .consent-label{
+    display:flex;align-items:flex-start;gap:9px;cursor:pointer;
+    font-size:13px;line-height:1.5;color:var(--text-muted);font-weight:400;
+  }
+  .consent-label input[type="checkbox"]{
+    width:16px;height:16px;flex:0 0 16px;margin-top:2px;accent-color:var(--teal);
+  }
   .form-submit{
     width:100%;justify-content:center;margin-top:6px;font-size:16px;padding:15px;
   }
