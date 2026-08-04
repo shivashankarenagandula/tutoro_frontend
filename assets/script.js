@@ -1,283 +1,516 @@
-// ===================================================================
-// Tutoro — shared site script (used by index.html and all /areas/ pages)
-// ===================================================================
-
-// ===================================================================
-// API CONNECTION
-// Replace this with your real Render URL once deployed, e.g.
-// 'https://tutoro-backend.onrender.com'
-// ===================================================================
-var TUTORO_API_BASE = 'https://tutoro-backend-zz25.onrender.com';
-
-// Field-name mapping: HTML form field -> backend API field.
-// Kept explicit and separate from the HTML so form markup never needs
-// to change even if the API's field names do.
-var PARENT_LEAD_FIELD_MAP = {
-  name: 'name', phone: 'phone_number', grade: 'student_class',
-  subject: 'subject', area: 'area', timing: 'preferred_timing',
-  teaching_mode: 'teaching_mode_preference',
-  email: 'email', website: 'website',
-};
-var TUTOR_LEAD_FIELD_MAP = {
-  name: 'name', phone: 'phone_number', area: 'area',
-  subjects: 'subjects', classes: 'classes',
-  experience: 'experience', fee: 'expected_fee',
-  email: 'email', website: 'website',
-};
-
-// Checkboxes need separate handling from FormData.get(), which returns
-// 'on'/null rather than a real boolean -- keeping this list explicit
-// means submitLead doesn't need to guess a field's HTML input type.
-var LEAD_CHECKBOX_FIELDS = { consent: 'consent_given' };
-
-
-// Mobile nav toggle
-(function(){
-  var toggle = document.getElementById('navToggle');
-  var links = document.getElementById('navLinks');
-  if(toggle && links){
-    toggle.addEventListener('click', function(){
-      links.classList.toggle('open');
-    });
+:root{
+    --ink:#142033;
+    --ink-2:#0d1626;
+    --marigold:#F0A93E;
+    --marigold-dark:#d6912b;
+    --teal:#2E8B7A;
+    --teal-light:#e4f2ee;
+    --paper:#F6F5F0;
+    --paper-2:#ECE9DF;
+    --text-dark:#1B2233;
+    --text-muted:#5B6472;
+    --text-light:#F3F1E9;
+    --text-light-muted:#B9C1D4;
+    --radius:14px;
+    --serif:"Fraunces", serif;
+    --sans:"Inter", sans-serif;
+    --mono:"IBM Plex Mono", monospace;
   }
-})();
 
-// Tabs for how-it-works (only present on homepage)
-document.querySelectorAll('.tab-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
-  });
-});
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;overflow-x:hidden;}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--text-dark);
+    background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+  section{padding:88px 0;}
+  h1,h2,h3{font-family:var(--serif);margin:0;line-height:1.05;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-weight:500;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:14px 26px;
+    border-radius:999px;
+    font-weight:600;
+    font-size:15.5px;
+    text-decoration:none;
+    border:1.5px solid transparent;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:focus-visible{outline:3px solid var(--marigold);outline-offset:2px;}
+  .btn-marigold{background:var(--marigold);color:var(--ink-2);}
+  .btn-marigold:hover{box-shadow:0 8px 24px rgba(240,169,62,.35);}
+  .btn-teal{background:var(--teal);color:#fff;}
+  .btn-teal:hover{box-shadow:0 8px 24px rgba(46,139,122,.3);}
+  .btn-outline{background:transparent;border-color:rgba(255,255,255,.35);color:var(--text-light);}
+  .btn-outline:hover{border-color:var(--marigold);}
+  .btn-outline-dark{background:transparent;border-color:rgba(20,32,51,.25);color:var(--text-dark);}
+  .btn-outline-dark:hover{border-color:var(--ink);}
 
-// ===================================================================
-// Populate area dropdowns from the live backend catalog.
-// If this fails (API not deployed yet, network issue), the static
-// fallback options already in the HTML remain untouched -- the form
-// still works, just without picking up any admin-side area changes.
-// ===================================================================
-(function () {
-  var selects = document.querySelectorAll('.area-select');
-  if (!selects.length) return;
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky;top:0;z-index:40;
+    background:rgba(20,32,51,.92);
+    backdrop-filter:blur(8px);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;}
+  .logo{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:24px;
+    color:var(--text-light);
+    letter-spacing:-.02em;
+  }
+  .logo span{color:var(--marigold);}
+  .nav-links{display:flex;gap:28px;align-items:center;}
+  .nav-links a{
+    color:var(--text-light-muted);
+    text-decoration:none;
+    font-size:14.5px;
+    font-weight:500;
+  }
+  .nav-links a:hover{color:var(--text-light);}
+  .nav-cta{display:flex;gap:10px;align-items:center;}
+  .nav-toggle{display:none;background:none;border:none;color:var(--text-light);font-size:26px;cursor:pointer;}
 
-  fetch(TUTORO_API_BASE + '/api/catalog/areas/')
-    .then(function (res) { return res.json(); })
-    .then(function (data) {
-      var areas = data.results || data;
-      if (!Array.isArray(areas) || !areas.length) return;
+  /* ---------- HERO ---------- */
+  header.hero{
+    background:radial-gradient(1200px 600px at 80% -10%, #1c2c47 0%, var(--ink) 55%, var(--ink-2) 100%);
+    color:var(--text-light);
+    padding:76px 0 96px;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:56px;
+    align-items:center;
+  }
+  .hero-eyebrow{color:var(--marigold);margin-bottom:18px;}
+  .hero h1{
+    font-size:clamp(34px, 4.4vw, 56px);
+    font-weight:600;
+    max-width:15ch;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--marigold);
+  }
+  .hero p.sub{
+    font-size:18px;
+    color:var(--text-light-muted);
+    max-width:46ch;
+    margin:22px 0 32px;
+    line-height:1.55;
+  }
+  .hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:36px;}
+  .hero-note{
+    display:flex;align-items:center;gap:10px;
+    font-size:13.5px;color:var(--text-light-muted);
+  }
+  .hero-note .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);}
 
-      selects.forEach(function (select) {
-        var currentValue = select.value;
-        select.innerHTML = '<option value="">Select your area</option>';
-        areas.forEach(function (area) {
-          var opt = document.createElement('option');
-          opt.value = area.name;
-          opt.textContent = area.name;
-          select.appendChild(opt);
-        });
-        if (currentValue) select.value = currentValue;
-      });
-    })
-    .catch(function () {
-      // Silent fail -- static fallback options already in the HTML stay as-is.
-    });
-})();
+  /* ---------- ROUTE CARD (signature element) ---------- */
+  .route-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:20px;
+    padding:28px 24px 22px;
+  }
+  .route-card .route-label{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-light-muted);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .route-svg{width:100%;height:auto;display:block;}
+  .route-pin-label{
+    font-family:var(--sans);
+  }
+  .route-footer{
+    display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;
+    margin-top:10px;padding-top:16px;border-top:1px dashed rgba(255,255,255,.15);
+  }
+  .route-footer .stat{font-family:var(--mono);font-size:12px;color:var(--marigold);}
+  .route-footer .stat span{display:block;color:var(--text-light-muted);font-size:11px;margin-top:2px;}
 
-function getOrCreateErrorBox(form) {
-  var existing = form.querySelector('.form-error-box');
-  if (existing) return existing;
-  var box = document.createElement('div');
-  box.className = 'form-error-box';
-  box.style.cssText = 'display:none;background:#fdecea;color:#b3261e;' +
-    'border:1px solid #f5c6c2;border-radius:8px;padding:10px 14px;' +
-    'font-size:13.5px;margin-bottom:14px;';
-  var submitBtn = form.querySelector('button[type="submit"]');
-  submitBtn.parentNode.insertBefore(box, submitBtn);
-  return box;
+  @keyframes dashmove{ to{ stroke-dashoffset:-40; } }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .route-dash{ stroke-dasharray:6 6; animation:dashmove 2.2s linear infinite; }
+  .route-pulse{ animation:pulse 1.8s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){
+    .route-dash{animation:none;}
+    .route-pulse{animation:none;}
+  }
+
+  /* ---------- TRUST STRIP ---------- */
+  .trust-strip{
+    background:var(--ink-2);
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .trust-strip .wrap{
+    display:flex;flex-wrap:wrap;gap:36px;justify-content:space-between;
+    padding:26px 24px;
+  }
+.trust-item{
+    display:flex;align-items:center;gap:10px;
+    color:var(--text-light-muted);
+    font-size:13.5px;
+  }
+  .trust-item svg{flex-shrink:0;}
+
+  .bento-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+    padding:26px 24px;
+  }
+  .bento-card{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .bento-icon{margin-bottom:12px;}
+  .bento-title{
+    color:var(--text-light);
+    font-weight:600;font-size:15px;
+    margin-bottom:6px;
+  }
+  .bento-sub{
+    color:var(--text-light-muted);
+    font-size:13.5px;line-height:1.5;
+  }
+  @media (max-width:768px){
+    .bento-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:480px){
+    .bento-grid{grid-template-columns:1fr;}
+  }
+
+  .bento-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+  padding:26px 24px;
+}
+.bento-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(dius);
+  padding:20px;
+}
+.bento-icon{margin-bottom:12px;}
+.bento-title{
+  color:var(--text-light);
+  font-weight:600;font-size:15px;
+  margin-bottom:6px;
+}
+.bento-sub{
+  color:var(--text-light-muted);
+  font-size:13.5px;line-height:1.5;
+}
+@media (max-width:768px){
+  .bento-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:480px){
+  .bento-grid{grid-template-columns:1fr;}
 }
 
-var PHONE_PATTERN = /^(?:\+91|91|0)?[6-9]\d{9}$/;
+  /* ---------- HOW IT WORKS ---------- */
+  .section-head{max-width:640px;margin-bottom:52px;}
+  .section-head .eyebrow{color:var(--teal);margin-bottom:14px;}
+  .section-head h2{font-size:clamp(28px,3.2vw,40px);font-weight:600;}
+  .section-head p{font-size:17px;color:var(--text-muted);margin-top:14px;line-height:1.6;}
 
-function submitLead(form, endpointPath, fieldMap, successId) {
-  var errorBox = getOrCreateErrorBox(form);
-  var formData = new FormData(form);
-  var payload = {};
-  for (var htmlField in fieldMap) {
-    payload[fieldMap[htmlField]] = formData.get(htmlField) || '';
+  .tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:40px;}
+  .tab-btn{
+    font-family:var(--sans);font-weight:600;font-size:14.5px;
+    padding:10px 20px;border-radius:999px;
+    border:1.5px solid var(--paper-2);
+    background:#fff;color:var(--text-muted);cursor:pointer;
   }
-  // Checkboxes: read real .checked state directly from the DOM rather
-  // than FormData (which omits unchecked boxes and returns 'on' for
-  // checked ones) so the backend gets an actual boolean.
-  for (var checkboxField in LEAD_CHECKBOX_FIELDS) {
-    var checkboxEl = form.querySelector('[name="' + checkboxField + '"]');
-    payload[LEAD_CHECKBOX_FIELDS[checkboxField]] = !!(checkboxEl && checkboxEl.checked);
+  .tab-btn.active{
+    background:var(--ink);border-color:var(--ink);color:var(--text-light);
+  }
+  .steps{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+  }
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .step{
+    background:#fff;border:1px solid var(--paper-2);border-radius:var(--radius);
+    padding:26px 22px;
+  }
+  .step .num{
+    font-family:var(--mono);font-size:13px;color:var(--marigold-dark);
+    font-weight:500;margin-bottom:14px;
+  }
+  .step h3{font-size:18px;font-weight:600;margin-bottom:8px;}
+  .step p{font-size:14.5px;color:var(--text-muted);line-height:1.55;margin:0;}
+
+  /* ---------- FORM SECTIONS ---------- */
+  .form-section{
+    display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:start;
+  }
+  .form-copy .eyebrow{margin-bottom:14px;}
+  .form-copy h2{font-size:clamp(26px,3vw,36px);font-weight:600;margin-bottom:16px;}
+  .form-copy p{font-size:16px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;}
+  .form-copy ul{padding:0;margin:0;list-style:none;}
+  .form-copy li{
+    display:flex;gap:10px;align-items:flex-start;
+    font-size:14.5px;color:var(--text-dark);margin-bottom:14px;
+  }
+  .form-copy li svg{flex-shrink:0;margin-top:2px;}
+
+  .card-form{
+    background:#fff;border:1px solid var(--paper-2);border-radius:20px;
+    padding:32px;box-shadow:0 20px 50px -20px rgba(20,32,51,.15);
+  }
+  .field{margin-bottom:18px;}
+
+  /* Honeypot: invisible to real users (off-screen, not display:none --
+     some bots skip display:none fields), present in the DOM for bots
+     that auto-fill every field to catch themselves in. */
+  .hp-field{
+    position:absolute;left:-9999px;top:-9999px;
+    width:1px;height:1px;overflow:hidden;
+  }
+  .field label{
+    display:block;font-size:13.5px;font-weight:600;margin-bottom:7px;color:var(--text-dark);
+  }
+  .field label .req{color:var(--marigold-dark);}
+  .field input, .field select, .field textarea{
+    width:100%;padding:12px 14px;border-radius:10px;
+    border:1.5px solid var(--paper-2);font-family:var(--sans);font-size:14.5px;
+    background:var(--paper);color:var(--text-dark);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none;border-color:var(--teal);background:#fff;
+  }
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .consent-field{margin-top:2px;margin-bottom:14px;}
+  .consent-label{
+    display:flex;align-items:flex-start;gap:9px;cursor:pointer;
+    font-size:13px;line-height:1.5;color:var(--text-muted);font-weight:400;
+  }
+  .consent-label input[type="checkbox"]{
+    width:16px;height:16px;flex:0 0 16px;margin-top:2px;accent-color:var(--teal);
+  }
+  .form-submit{
+    width:100%;justify-content:center;margin-top:6px;font-size:16px;padding:15px;
+  }
+  .form-success{
+    display:none;text-align:center;padding:40px 10px;
+  }
+  .form-success.show{display:block;}
+  .form-success svg{margin:0 auto 16px;}
+  .form-success h3{font-size:20px;margin-bottom:8px;}
+  .form-success p{color:var(--text-muted);font-size:14.5px;}
+
+  #for-tutors{background:var(--paper-2);}
+
+  /* ---------- LOCALITIES ---------- */
+  .locality-grid{
+    display:flex;flex-wrap:wrap;gap:10px;
+  }
+  .locality-chip{
+    font-family:var(--mono);font-size:13px;
+    padding:9px 16px;border-radius:999px;
+    background:#fff;border:1px solid var(--paper-2);color:var(--text-muted);
+    text-decoration:none;display:inline-block;
+  }
+  a.locality-chip:hover{border-color:var(--teal);color:var(--teal);}
+
+  /* ---------- FAQ ---------- */
+  .faq-item{
+    border-bottom:1px solid var(--paper-2);padding:22px 0;
+  }
+  .faq-item summary{
+    font-family:var(--serif);font-size:18px;font-weight:600;cursor:pointer;
+    list-style:none;display:flex;justify-content:space-between;align-items:center;
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary .icon{font-family:var(--mono);color:var(--marigold-dark);font-size:20px;}
+  .faq-item p{color:var(--text-muted);font-size:15px;line-height:1.6;margin:14px 0 0;max-width:65ch;}
+
+  /* ---------- FOOTER ---------- */
+  footer{background:var(--ink-2);color:var(--text-light-muted);padding:56px 0 28px;}
+  .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;margin-bottom:40px;}
+  footer .logo{margin-bottom:14px;}
+  footer p{font-size:14px;line-height:1.6;max-width:36ch;}
+  footer h4{font-family:var(--sans);color:var(--text-light);font-size:14px;margin:0 0 16px;}
+  footer ul{list-style:none;padding:0;margin:0;}
+  footer li{margin-bottom:10px;font-size:14px;}
+  footer a{text-decoration:none;color:var(--text-light-muted);}
+  footer a:hover{color:var(--marigold);}
+  .footer-bottom{
+    border-top:1px solid rgba(255,255,255,.08);padding-top:22px;
+    font-size:13px;color:var(--text-light-muted);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
   }
 
-  errorBox.style.display = 'none';
-
-  // Catch an obviously wrong number before it ever reaches the server --
-  // same rule as the backend, so it never disagrees with what actually
-  // gets accepted.
-  var rawPhone = (payload.phone_number || '').replace(/\s|-/g, '');
-  if (!PHONE_PATTERN.test(rawPhone)) {
-    errorBox.textContent = 'Please enter a valid 10-digit Indian mobile number.';
-    errorBox.style.display = 'block';
-    return;
+  /* ---------- WHATSAPP FLOAT ---------- */
+  .wa-float{
+    position:fixed;bottom:24px;right:24px;z-index:50;
+    background:var(--teal);color:#fff;width:58px;height:58px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(46,139,122,.4);text-decoration:none;
   }
 
-  if (!payload.consent_given) {
-    errorBox.textContent = 'Please agree to the privacy notice to submit this form.';
-    errorBox.style.display = 'block';
-    return;
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:960px){
+    .hero-grid{grid-template-columns:1fr;}
+    .form-section{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr 1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:640px){
+    section{padding:56px 0;}
+    .nav-links{
+      position:absolute;top:100%;left:0;right:0;
+      background:var(--ink);flex-direction:column;align-items:flex-start;
+      padding:20px 24px;display:none;gap:16px;
+    }
+    .nav-links.open{display:flex;}
+    .nav-toggle{display:block;}
+    .nav-cta .btn span{display:none;}
+    .steps{grid-template-columns:1fr;}
+    .field-row{grid-template-columns:1fr;}
+    .trust-strip .wrap{flex-direction:column;gap:14px;}
+    .footer-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:480px){
+    .wrap{padding:0 18px;}
+    header.hero{padding:56px 0 64px;}
+    .locality-hero{padding:48px 0 56px;}
+    .card-form, .mini-card-form{padding:22px 18px;}
+    .route-card{padding:20px 16px 18px;}
+    .wa-float{width:52px;height:52px;bottom:18px;right:18px;}
+    .hero-actions{flex-direction:column;}
+    .hero-actions .btn{width:100%;justify-content:center;}
   }
 
-  var submitBtn = form.querySelector('button[type="submit"]');
-  var originalBtnText = submitBtn.textContent;
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Sending...';
+/* ---------- GEO BANNER (dynamic, JS-populated) ---------- */
+.geo-banner{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  background:var(--marigold);
+  color:var(--ink-2);
+  font-size:13.5px;
+  font-weight:500;
+  padding:10px 20px;
+  text-align:center;
+  flex-wrap:wrap;
+}
+.geo-banner a{
+  text-decoration:underline;
+  font-weight:700;
+  color:var(--ink-2);
+}
+.geo-banner .geo-close{
+  background:none;border:none;cursor:pointer;
+  font-size:16px;color:var(--ink-2);opacity:.7;
+  padding:0 4px;
+}
+.geo-banner .geo-close:hover{opacity:1;}
 
-  fetch(TUTORO_API_BASE + endpointPath, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-    .then(function (response) {
-      if (response.status === 201) {
-        form.style.display = 'none';
-        document.getElementById(successId).classList.add('show');
-        return null;
-      }
-      return response.json().then(function (data) { throw data; });
-    })
-    .catch(function (err) {
-      // Show the backend's actual validation message when we have one
-      // (e.g. "that area isn't supported yet") rather than a generic error.
-      var message = 'Something went wrong. Please try WhatsApp instead.';
-      if (err && typeof err === 'object') {
-        var firstKey = Object.keys(err)[0];
-        if (firstKey && Array.isArray(err[firstKey])) {
-          message = err[firstKey][0];
-        }
-      }
-      errorBox.textContent = message;
-      errorBox.style.display = 'block';
-    })
-    .finally(function () {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalBtnText;
-    });
+/* ---------- LOCALITY PAGES ---------- */
+.locality-hero{
+  background:radial-gradient(1200px 600px at 80% -10%, #1c2c47 0%, var(--ink) 55%, var(--ink-2) 100%);
+  color:var(--text-light);
+  padding:64px 0 80px;
+}
+.locality-hero .wrap{
+  display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:start;
+}
+.locality-hero h1{
+  font-size:clamp(30px,3.8vw,46px);font-weight:600;max-width:16ch;
+}
+.locality-hero h1 em{font-style:normal;color:var(--marigold);}
+.locality-hero p.sub{
+  font-size:16.5px;color:var(--text-light-muted);max-width:48ch;
+  margin:18px 0 26px;line-height:1.6;
+}
+.locality-subject-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;}
+.locality-subject-chips span{
+  font-family:var(--mono);font-size:12px;color:var(--text-light-muted);
+  border:1px solid rgba(255,255,255,.18);padding:6px 12px;border-radius:999px;
+}
+.mini-card-form{
+  background:#fff;border-radius:20px;padding:28px;
+  box-shadow:0 20px 50px -20px rgba(20,32,51,.3);
+}
+.mini-card-form h3{font-size:18px;color:var(--text-dark);margin-bottom:4px;}
+.mini-card-form .form-note{font-size:13px;color:var(--text-muted);margin-bottom:18px;}
+.other-areas{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+.other-areas a{
+  font-family:var(--mono);font-size:13px;text-decoration:none;
+  padding:8px 15px;border-radius:999px;background:#fff;
+  border:1px solid var(--paper-2);color:var(--text-muted);
+}
+.other-areas a:hover{border-color:var(--teal);color:var(--teal);}
+
+@media (max-width:960px){
+  .locality-hero .wrap{grid-template-columns:1fr;}
 }
 
-function handleFormSubmit(formId, successId) {
-  var form = document.getElementById(formId);
-  if (!form) return;
-
-  var isParentForm = formId === 'parentForm';
-  var endpointPath = isParentForm ? '/api/leads/parent/' : '/api/leads/tutor/';
-  var fieldMap = isParentForm ? PARENT_LEAD_FIELD_MAP : TUTOR_LEAD_FIELD_MAP;
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    submitLead(form, endpointPath, fieldMap, successId);
-  });
+/* Route/live-match card needs a dark backdrop on pages where it isn't
+   already inside the dark hero header (the /areas/ locality pages) */
+section:has(> .wrap > .route-card){
+  background:radial-gradient(1200px 600px at 80% -10%, #1c2c47 0%, var(--ink) 55%, var(--ink-2) 100%);
+  padding-top:44px;
+  padding-bottom:44px;
 }
-handleFormSubmit('parentForm', 'parentSuccess');
-handleFormSubmit('tutorForm', 'tutorSuccess');
 
-// ===================================================================
-// GEO-DETECTION (homepage only — silent, no permission prompt)
-//
-// Uses a free IP-lookup API to guess the visitor's city, purely client-side.
-// This works on GitHub Pages since it's just JS running in the visitor's
-// own browser — no server of ours involved.
-//
-// Behavior:
-//  - If we can't detect a city (blocked, offline, ad-blocker, API down),
-//    we fail silently. Nothing breaks, nothing shows.
-//  - If detected city is Hyderabad, we leave the page as-is (that's who
-//    the whole site is built for right now).
-//  - If detected city is anything else, we show a small dismissible
-//    banner inviting them to register interest for when we expand,
-//    instead of just losing them.
-//  - Dismissal is remembered for the browser session only.
-// ===================================================================
-(function(){
-  var banner = document.getElementById('geoBanner');
-  if(!banner) return; // banner only exists on homepage
-
-  if(sessionStorage.getItem('tutoro_geo_dismissed') === '1') return;
-
-  fetch('https://ipapi.co/json/')
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      var city = (data && data.city) ? data.city.trim() : '';
-      if(!city) return;
-
-      if(city.toLowerCase() !== 'hyderabad'){
-        banner.innerHTML =
-          '📍 Looks like you\'re browsing from <strong>' + city + '</strong> — ' +
-          'Tutoro is currently live in Hyderabad only, but expanding soon. ' +
-          '<a href="#for-tutors">Register your interest</a>' +
-          '<button class="geo-close" aria-label="Dismiss">✕</button>';
-        banner.style.display = 'flex';
-
-        var closeBtn = banner.querySelector('.geo-close');
-        if(closeBtn){
-          closeBtn.addEventListener('click', function(){
-            banner.style.display = 'none';
-            sessionStorage.setItem('tutoro_geo_dismissed', '1');
-          });
-        }
-      }
-    })
-    .catch(function(){
-      // Silent fail — no banner, no error shown to visitor
-    });
-})();
-
-
-// ===================================================================
-// LIVE MATCH CARD — per-area, fetched from the real backend.
-// Falls back silently to the static placeholder already in the HTML
-// if the API is unreachable or returns nothing.
-// ===================================================================
-(function () {
-  var cards = document.querySelectorAll('.route-card[data-area]');
-  if (!cards.length) return;
-
-  cards.forEach(function (card) {
-    var areaName = card.getAttribute('data-area');
-    fetch(TUTORO_API_BASE + '/api/matching/recent-match/?area=' + encodeURIComponent(areaName))
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var studentNameEl = card.querySelector('#liveMatchStudentName') || card.querySelector('[id$="StudentName"]');
-        var studentDetailEl = card.querySelector('#liveMatchStudentDetail') || card.querySelector('[id$="StudentDetail"]');
-        var tutorNameEl = card.querySelector('#liveMatchTutorName') || card.querySelector('[id$="TutorName"]');
-        var tutorDetailEl = card.querySelector('#liveMatchTutorDetail') || card.querySelector('[id$="TutorDetail"]');
-        var distanceEl = card.querySelector('#liveMatchDistance') || card.querySelector('[id$="Distance"]');
-        var verifiedEl = card.querySelector('#liveMatchVerified') || card.querySelector('[id$="Verified"]');
-
-        if (studentNameEl) studentNameEl.textContent = data.student_display_name;
-        if (studentDetailEl) studentDetailEl.textContent =
-          data.student_class_display + ' · ' + data.subject + ' · ' + data.area_name;
-
-        if (tutorNameEl) tutorNameEl.textContent = data.tutor_name;
-        if (tutorDetailEl) tutorDetailEl.textContent =
-          data.tutor_qualification + ' · ' + data.tutor_experience_years + ' yrs · ' + data.area_name;
-
-        if (distanceEl) {
-          var distText = (data.distance_km !== null && data.distance_km !== undefined)
-            ? data.distance_km + ' KM' : 'NEARBY';
-          distanceEl.innerHTML = distText + '<span>apart</span>';
-        }
-        if (verifiedEl) {
-          verifiedEl.innerHTML = (data.tutor_verified ? 'VERIFIED' : 'IN REVIEW') + '<span>tutor ID checked</span>';
-        }
-      })
-      .catch(function () {
-        // Silent fail — static placeholder already in the HTML stays as-is.
-      });
-  });
-})();
+/* ---------- AUTH MODAL (login / signup) ---------- */
+.auth-modal-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(13,22,38,.55);
+  align-items:center;justify-content:center;padding:20px;
+}
+.auth-modal-overlay.open{display:flex;}
+.auth-modal{
+  background:var(--paper);border-radius:20px;
+  max-width:440px;width:100%;max-height:88vh;overflow-y:auto;
+  padding:28px 26px 24px;position:relative;
+  box-shadow:0 30px 70px -20px rgba(20,32,51,.4);
+}
+.auth-modal-close{
+  position:absolute;top:16px;right:16px;
+  background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);
+}
+.auth-modal h3{font-family:var(--serif);font-size:22px;color:var(--text-dark);margin-bottom:16px;}
+.auth-tabs{display:flex;margin-bottom:20px;border-bottom:1px solid var(--paper-2);}
+.auth-tab-btn{
+  background:none;border:none;padding:10px 4px;margin-right:20px;
+  font-family:var(--sans);font-size:14.5px;font-weight:600;color:var(--text-muted);
+  cursor:pointer;border-bottom:2px solid transparent;
+}
+.auth-tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+.auth-panel{display:none;}
+.auth-panel.active{display:block;}
+.auth-role-toggle{display:flex;gap:8px;margin-bottom:18px;}
+.auth-role-btn{
+  flex:1;padding:9px;border-radius:10px;border:1px solid var(--paper-2);
+  background:#fff;font-size:13.5px;font-family:var(--sans);cursor:pointer;color:var(--text-muted);
+}
+.auth-role-btn.active{border-color:var(--teal);color:var(--teal);background:var(--teal-light);}
+.auth-role-form{display:none;}
+.auth-role-form.active{display:block;}
+.account-field{font-size:14.5px;color:var(--text-dark);padding:9px 0;border-bottom:1px solid var(--paper-2);}
+.account-field strong{display:block;color:var(--text-muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px;}
