@@ -15,6 +15,7 @@ var TUTORO_API_BASE = 'https://tutoro-backend-zz25.onrender.com';
 var PARENT_LEAD_FIELD_MAP = {
   name: 'name', phone: 'phone_number', grade: 'student_class',
   subject: 'subject', area: 'area', timing: 'preferred_timing',
+  teaching_mode: 'teaching_mode_preference',
   email: 'email', website: 'website',
 };
 var TUTOR_LEAD_FIELD_MAP = {
