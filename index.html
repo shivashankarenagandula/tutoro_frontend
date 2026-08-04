@@ -252,6 +252,14 @@
           <div class="field"><label>Preferred timing</label><input type="text" name="timing" placeholder="Evening 6–7 PM"></div>
         </div>
         <div class="field-row">
+          <div class="field"><label>Preferred mode <span class="req">*</span></label>
+            <select name="teaching_mode" required>
+              <option value="ANY">Any (Home, Online, or Academy)</option>
+              <option value="HOME">Home visit</option>
+              <option value="ONLINE">Online</option>
+              <option value="ACADEMY">Academy / coaching institute</option>
+            </select>
+          </div>
           <div class="field"><label>Email (optional)</label><input type="email" name="email" placeholder="you@example.com"></div>
         </div>
         <button type="submit" class="btn btn-teal form-submit">Request free demo class</button>
