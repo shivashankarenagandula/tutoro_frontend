@@ -252,12 +252,13 @@
           <div class="field"><label>Preferred timing</label><input type="text" name="timing" placeholder="Evening 6–7 PM"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Preferred mode <span class="req">*</span></label>
+          <div class="field"><label>How would you like classes? <span class="req">*</span></label>
             <select name="teaching_mode" required>
-              <option value="ANY">Any (Home, Online, or Academy)</option>
-              <option value="HOME">Home visit</option>
-              <option value="ONLINE">Online</option>
-              <option value="ACADEMY">Academy / coaching institute</option>
+              <option value="">Select an option</option>
+              <option value="HOME">Tutor visits our home</option>
+              <option value="ONLINE">Online classes</option>
+              <option value="ACADEMY">A nearby academy / coaching centre</option>
+              <option value="ANY">Not sure — suggest what's best</option>
             </select>
           </div>
           <div class="field"><label>Email (optional)</label><input type="email" name="email" placeholder="you@example.com"></div>
@@ -265,7 +266,8 @@
         <div class="field consent-field">
           <label class="consent-label">
             <input type="checkbox" name="consent" required>
-            <span>I agree to Tutoro contacting me about this request and processing my details as described in our privacy notice. <span class="req">*</span></span>
+            I agree to Tutoro contacting me about this request and to the
+            <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a>. <span class="req">*</span>
           </label>
         </div>
         <button type="submit" class="btn btn-teal form-submit">Request free demo class</button>
@@ -327,7 +329,8 @@
         <div class="field consent-field">
           <label class="consent-label">
             <input type="checkbox" name="consent" required>
-            <span>I agree to Tutoro contacting me about this signup and processing my details as described in our privacy notice. <span class="req">*</span></span>
+            I agree to Tutoro contacting me about tutoring opportunities and to the
+            <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a>. <span class="req">*</span>
           </label>
         </div>
         <button type="submit" class="btn btn-marigold form-submit">Create tutor profile</button>
@@ -417,7 +420,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 Tutoro. All rights reserved.</span>
-      <span>Built in Hyderabad, for Hyderabad.</span>
+      <span><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a></span>
     </div>
   </div>
 </footer>
