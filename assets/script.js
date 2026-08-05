@@ -25,11 +25,6 @@ var TUTOR_LEAD_FIELD_MAP = {
   email: 'email', website: 'website',
 };
 
-// Checkboxes need separate handling from FormData.get(), which returns
-// 'on'/null rather than a real boolean -- keeping this list explicit
-// means submitLead doesn't need to guess a field's HTML input type.
-var LEAD_CHECKBOX_FIELDS = { consent: 'consent_given' };
-
 
 // Mobile nav toggle
 (function(){
@@ -107,13 +102,10 @@ function submitLead(form, endpointPath, fieldMap, successId) {
   for (var htmlField in fieldMap) {
     payload[fieldMap[htmlField]] = formData.get(htmlField) || '';
   }
-  // Checkboxes: read real .checked state directly from the DOM rather
-  // than FormData (which omits unchecked boxes and returns 'on' for
-  // checked ones) so the backend gets an actual boolean.
-  for (var checkboxField in LEAD_CHECKBOX_FIELDS) {
-    var checkboxEl = form.querySelector('[name="' + checkboxField + '"]');
-    payload[LEAD_CHECKBOX_FIELDS[checkboxField]] = !!(checkboxEl && checkboxEl.checked);
-  }
+  // Checkboxes need explicit boolean conversion -- FormData.get returns
+  // the string 'on' when checked, null when not, neither of which is a
+  // real JSON boolean the backend's BooleanField expects.
+  payload.consent_given = formData.get('consent') === 'on';
 
   errorBox.style.display = 'none';
 
@@ -123,12 +115,6 @@ function submitLead(form, endpointPath, fieldMap, successId) {
   var rawPhone = (payload.phone_number || '').replace(/\s|-/g, '');
   if (!PHONE_PATTERN.test(rawPhone)) {
     errorBox.textContent = 'Please enter a valid 10-digit Indian mobile number.';
-    errorBox.style.display = 'block';
-    return;
-  }
-
-  if (!payload.consent_given) {
-    errorBox.textContent = 'Please agree to the privacy notice to submit this form.';
     errorBox.style.display = 'block';
     return;
   }
