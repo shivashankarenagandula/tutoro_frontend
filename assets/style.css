@@ -481,3 +481,41 @@ section:has(> .wrap > .route-card){
   padding-top:44px;
   padding-bottom:44px;
 }
+
+/* ---------- REVIEWS ---------- */
+.reviews-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px;
+}
+.review-card{
+  background:#fff;border-radius:16px;padding:22px 20px;
+  border:1px solid var(--paper-2);
+}
+.review-card .stars{color:var(--marigold);font-size:15px;letter-spacing:2px;margin-bottom:10px;}
+.review-card p{font-size:14.5px;color:var(--text-dark);line-height:1.55;margin:0 0 14px;}
+.review-card .review-meta{font-size:13px;color:var(--text-muted);}
+.review-card .review-meta strong{color:var(--text-dark);}
+@media (max-width:900px){
+  .reviews-grid{grid-template-columns:1fr;}
+}
+
+/* ---------- FAQ CHATBOT ---------- */
+.faq-chat{
+  margin-top:26px;background:#fff;border-radius:16px;
+  border:1px solid var(--paper-2);padding:20px 22px;
+}
+.faq-chat-head{display:flex;flex-direction:column;gap:2px;margin-bottom:14px;}
+.faq-chat-head strong{font-family:var(--serif);font-size:17px;color:var(--text-dark);}
+.faq-chat-head span{font-size:13px;color:var(--text-muted);}
+.faq-chat-log{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;max-height:320px;overflow-y:auto;}
+.faq-chat-log:empty{display:none;}
+.faq-chat-msg{font-size:14px;line-height:1.5;padding:10px 14px;border-radius:12px;max-width:88%;}
+.faq-chat-msg.user{align-self:flex-end;background:var(--teal-light);color:var(--text-dark);}
+.faq-chat-msg.bot{align-self:flex-start;background:var(--paper-2);color:var(--text-dark);}
+.faq-chat-msg.bot.error{background:#fdecea;color:#b3261e;}
+.faq-chat-msg.bot.pending{color:var(--text-muted);font-style:italic;}
+.faq-chat-form{display:flex;gap:10px;}
+.faq-chat-form input{
+  flex:1;padding:11px 14px;border-radius:10px;border:1px solid var(--paper-2);
+  font-family:var(--sans);font-size:14px;
+}
+.faq-chat-form input:focus{outline:none;border-color:var(--teal);}
