@@ -364,6 +364,19 @@
   </div>
 </section>
 
+<!-- ================= REVIEWS ================= -->
+<section id="reviews" style="background:var(--paper-2);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow" style="color:var(--teal);">From real matches</div>
+      <h2>What parents say</h2>
+    </div>
+    <div id="reviewsGrid" class="reviews-grid reveal">
+      <p id="reviewsEmpty" style="color:var(--text-muted);">Loading reviews…</p>
+    </div>
+  </div>
+</section>
+
 <!-- ================= FAQ ================= -->
 <section id="faq" style="background:var(--paper-2);">
   <div class="wrap">
@@ -388,9 +401,22 @@
         <summary>Which areas do you cover? <span class="icon">+</span></summary>
         <p>We're actively expanding across Hyderabad, prioritising areas with both an active parent request and a matching tutor nearby.</p>
       </details>
+
+      <div class="faq-chat" id="faqChat">
+        <div class="faq-chat-head">
+          <strong>Still have a question?</strong>
+          <span>Ask directly — answered instantly.</span>
+        </div>
+        <div id="faqChatLog" class="faq-chat-log"></div>
+        <form id="faqChatForm" class="faq-chat-form">
+          <input type="text" id="faqChatInput" placeholder="e.g. Do you cover Warangal?" maxlength="300" required>
+          <button type="submit" class="btn btn-teal" style="padding:10px 18px;font-size:14px;">Ask</button>
+        </form>
+      </div>
     </div>
   </div>
 </section>
+
 
 <!-- ================= FOOTER ================= -->
 <footer>
