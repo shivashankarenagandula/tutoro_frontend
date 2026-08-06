@@ -267,3 +267,122 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
       });
   });
 })();
+
+// ===================================================================
+// REVIEWS — pulls published reviews from the live backend and renders
+// them as cards. Silent no-op if the section isn't on the page, or if
+// there simply aren't any published reviews yet (expected early on,
+// since every review starts unpublished until AI/staff moderation
+// approves it — see apps.reviews).
+// ===================================================================
+(function () {
+  var grid = document.getElementById('reviewsGrid');
+  var emptyMsg = document.getElementById('reviewsEmpty');
+  if (!grid) return;
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function starString(rating) {
+    var n = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+    return '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
+  }
+
+  fetch(TUTORO_API_BASE + '/api/reviews/')
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      var reviews = data.results || data;
+      if (!Array.isArray(reviews) || !reviews.length) {
+        if (emptyMsg) emptyMsg.textContent = "We're just getting started — reviews will show up here as demo classes complete.";
+        return;
+      }
+      grid.innerHTML = '';
+      reviews.slice(0, 6).forEach(function (review) {
+        var card = document.createElement('div');
+        card.className = 'review-card';
+        card.innerHTML =
+          '<div class="stars">' + starString(review.rating) + '</div>' +
+          '<p>' + escapeHtml(review.comment || 'Great experience with Tutoro.') + '</p>' +
+          '<div class="review-meta"><strong>' + escapeHtml(review.reviewer_name || 'Parent') +
+          '</strong> · tutor ' + escapeHtml(review.tutor_name || '') + '</div>';
+        grid.appendChild(card);
+      });
+    })
+    .catch(function () {
+      // Silent fail -- the section quietly stays on its loading text
+      // rather than showing a broken/error state to visitors.
+      if (emptyMsg) emptyMsg.textContent = "Couldn't load reviews right now.";
+    });
+})();
+
+// ===================================================================
+// FAQ CHATBOT — talks to POST /api/ai/faq/ (Claude, answers grounded
+// only in Tutoro's own facts server-side). Stateless by design, same
+// as the backend: no history is sent, each question stands alone.
+// ===================================================================
+(function () {
+  var form = document.getElementById('faqChatForm');
+  var input = document.getElementById('faqChatInput');
+  var log = document.getElementById('faqChatLog');
+  if (!form || !input || !log) return;
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function addMessage(text, cls) {
+    var msg = document.createElement('div');
+    msg.className = 'faq-chat-msg ' + cls;
+    msg.innerHTML = escapeHtml(text);
+    log.appendChild(msg);
+    log.scrollTop = log.scrollHeight;
+    return msg;
+  }
+
+  var busy = false;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+
+    var question = input.value.trim();
+    if (!question) return;
+
+    addMessage(question, 'user');
+    input.value = '';
+    var pending = addMessage('Thinking…', 'bot pending');
+
+    busy = true;
+    input.disabled = true;
+
+    fetch(TUTORO_API_BASE + '/api/ai/faq/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question }),
+    })
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (d) { throw d; });
+        return res.json();
+      })
+      .then(function (data) {
+        pending.textContent = data.answer;
+        pending.classList.remove('pending');
+      })
+      .catch(function (err) {
+        var message = (err && err.detail) || "Couldn't get an answer right now. Please try again shortly.";
+        pending.textContent = message;
+        pending.classList.remove('pending');
+        pending.classList.add('error');
+      })
+      .finally(function () {
+        busy = false;
+        input.disabled = false;
+        input.focus();
+      });
+  });
+})();
