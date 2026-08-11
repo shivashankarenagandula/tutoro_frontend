@@ -386,3 +386,277 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
       });
   });
 })();
+
+// ===================================================================
+// AUTH MODAL — login / signup / session state.
+//
+// This was previously dead markup: the modal HTML existed but nothing
+// opened it, submitted the forms, or talked to the backend. This is
+// the missing wiring.
+//
+// Session storage: uses localStorage (not sessionStorage) so a login
+// persists across tabs/visits, same as any normal website login --
+// this is a real deployed site, not a Claude-artifact sandbox, so
+// localStorage is the correct tool here.
+// ===================================================================
+(function () {
+  var navBtn = document.getElementById('authNavBtn');
+  var overlay = document.getElementById('authModalOverlay');
+  var closeBtn = document.getElementById('authModalClose');
+  if (!navBtn || !overlay || !closeBtn) return; // not present on this page
+
+  var TOKEN_KEY = 'tutoro_access_token';
+  var REFRESH_KEY = 'tutoro_refresh_token';
+  var USER_KEY = 'tutoro_user';
+
+  function getUser() {
+    try { return JSON.parse(localStorage.getItem(USER_KEY) || 'null'); }
+    catch (e) { return null; }
+  }
+  function setSession(access, refresh, user) {
+    localStorage.setItem(TOKEN_KEY, access);
+    localStorage.setItem(REFRESH_KEY, refresh);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+  function clearSession() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+    localStorage.removeItem(USER_KEY);
+  }
+
+  function showPanel(panelSuffix) {
+    document.querySelectorAll('.auth-panel').forEach(function (p) { p.classList.remove('active'); });
+    var target = document.getElementById('authPanel-' + panelSuffix);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.auth-tab-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.authTab === panelSuffix);
+    });
+  }
+
+  function refreshNavBtnLabel() {
+    var user = getUser();
+    navBtn.textContent = user ? (user.full_name || user.email || 'Account') : 'Log in';
+  }
+
+  function openModal() {
+    var user = getUser();
+    if (user) {
+      var details = document.getElementById('accountDetails');
+      if (details) {
+        details.innerHTML =
+          '<p><strong>' + (user.full_name || '') + '</strong></p>' +
+          '<p style="color:var(--text-muted);">' + (user.email || '') + '</p>' +
+          '<p style="color:var(--text-muted);text-transform:capitalize;">' + (user.role || '').toLowerCase() + ' account</p>';
+      }
+      showPanel('account');
+      // account panel isn't a tab, so clear tab active state
+      document.querySelectorAll('.auth-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+    } else {
+      showPanel('login');
+    }
+    overlay.classList.add('open');
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  navBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+
+  document.querySelectorAll('.auth-tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { showPanel(btn.dataset.authTab); });
+  });
+
+  document.querySelectorAll('.auth-role-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.auth-role-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.querySelectorAll('.auth-role-form').forEach(function (f) { f.classList.remove('active'); });
+      var form = document.getElementById(btn.dataset.role + 'SignupForm');
+      if (form) form.classList.add('active');
+    });
+  });
+
+  var logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function () {
+      clearSession();
+      refreshNavBtnLabel();
+      closeModal();
+    });
+  }
+
+  function showFormError(form, message) {
+    var box = form.querySelector('.auth-form-error');
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'auth-form-error';
+      box.style.cssText = 'background:#fdecea;color:#b3261e;border:1px solid #f5c6c2;' +
+        'border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:12px;';
+      form.insertBefore(box, form.firstChild);
+    }
+    box.textContent = message;
+    box.style.display = 'block';
+  }
+
+  function firstErrorMessage(err) {
+    if (!err || typeof err !== 'object') return 'Something went wrong. Please try again.';
+    var firstKey = Object.keys(err)[0];
+    if (!firstKey) return 'Something went wrong. Please try again.';
+    var val = err[firstKey];
+    return Array.isArray(val) ? val[0] : String(val);
+  }
+
+  // ---- LOGIN ----
+  var loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = new FormData(loginForm);
+      var submitBtn = loginForm.querySelector('button[type="submit"]');
+      var original = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Logging in...';
+
+      fetch(TUTORO_API_BASE + '/api/auth/login/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.get('email'), password: data.get('password') }),
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (d) { throw d; });
+          return res.json();
+        })
+        .then(function (tokens) {
+          // JWT payload carries role/email; a minimal decode avoids an
+          // extra round trip just to greet the user by name.
+          var payload = JSON.parse(atob(tokens.access.split('.')[1]));
+          setSession(tokens.access, tokens.refresh, {
+            email: payload.email || data.get('email'),
+            role: payload.role || '',
+            full_name: payload.full_name || '',
+          });
+          refreshNavBtnLabel();
+          closeModal();
+          loginForm.reset();
+        })
+        .catch(function (err) {
+          showFormError(loginForm, err.detail || 'Incorrect email or password.');
+        })
+        .finally(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = original;
+        });
+    });
+  }
+
+  // ---- SIGNUP: shared submit handler for parent/tutor ----
+  function handleSignup(formId, endpointPath, buildPayload) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = new FormData(form);
+      var submitBtn = form.querySelector('button[type="submit"]');
+      var original = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account...';
+
+      fetch(TUTORO_API_BASE + endpointPath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload(data, form)),
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (d) { throw d; });
+          return res.json();
+        })
+        .then(function () {
+          // Auto-login right after signup so the person doesn't have
+          // to type their password twice in one sitting.
+          return fetch(TUTORO_API_BASE + '/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: data.get('email'), password: data.get('password') }),
+          }).then(function (res) { return res.json(); });
+        })
+        .then(function (tokens) {
+          var payload = JSON.parse(atob(tokens.access.split('.')[1]));
+          setSession(tokens.access, tokens.refresh, {
+            email: payload.email || data.get('email'),
+            role: payload.role || '',
+            full_name: data.get('full_name') || '',
+          });
+          refreshNavBtnLabel();
+          closeModal();
+          form.reset();
+        })
+        .catch(function (err) {
+          showFormError(form, firstErrorMessage(err));
+        })
+        .finally(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = original;
+        });
+    });
+  }
+
+  handleSignup('parentSignupForm', '/api/auth/register/parent/', function (data) {
+    return {
+      email: data.get('email'),
+      phone_number: data.get('phone_number'),
+      password: data.get('password'),
+      full_name: data.get('full_name'),
+      area: data.get('area'),
+    };
+  });
+
+  handleSignup('tutorSignupForm', '/api/auth/register/tutor/', function (data, form) {
+    var subjectsSelect = form.querySelector('.subject-select-id');
+    var areasSelect = form.querySelector('.area-select-id');
+    return {
+      email: data.get('email'),
+      phone_number: data.get('phone_number'),
+      password: data.get('password'),
+      full_name: data.get('full_name'),
+      subjects: Array.from(subjectsSelect.selectedOptions).map(function (o) { return o.value; }),
+      preferred_areas: Array.from(areasSelect.selectedOptions).map(function (o) { return o.value; }),
+      experience_years: data.get('experience_years') || 0,
+      expected_fee: data.get('expected_fee') || null,
+    };
+  });
+
+  // ---- Populate area/subject dropdowns inside the signup forms ----
+  fetch(TUTORO_API_BASE + '/api/catalog/areas/')
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      var areas = data.results || data;
+      if (!Array.isArray(areas)) return;
+      document.querySelectorAll('.area-select-id').forEach(function (select) {
+        areas.forEach(function (area) {
+          var opt = document.createElement('option');
+          opt.value = area.id;
+          opt.textContent = area.name;
+          select.appendChild(opt);
+        });
+      });
+    })
+    .catch(function () { /* signup form falls back to no options; user sees an empty select rather than a crash */ });
+
+  fetch(TUTORO_API_BASE + '/api/catalog/subjects/')
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      var subjects = data.results || data;
+      if (!Array.isArray(subjects)) return;
+      document.querySelectorAll('.subject-select-id').forEach(function (select) {
+        subjects.forEach(function (subject) {
+          var opt = document.createElement('option');
+          opt.value = subject.id;
+          opt.textContent = subject.name;
+          select.appendChild(opt);
+        });
+      });
+    })
+    .catch(function () { /* same fallback as areas above */ });
+
+  refreshNavBtnLabel();
+})();
