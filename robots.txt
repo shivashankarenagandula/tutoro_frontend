@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://shivashankarenagandula.github.io/tutoro_frontend/sitemap.xml
+Sitemap: https://tutorohometuitions.netlify.app/sitemap.xml
