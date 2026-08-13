@@ -465,8 +465,6 @@
   <a href="#for-tutors" class="btn btn-outline-dark" style="border-color:rgba(255,255,255,.3);color:#fff;">Teach</a>
 </div>
 
-<script src="assets/script.js"></script>
-
 <!-- ================= AUTH MODAL (login / signup) ================= -->
 <div class="auth-modal-overlay" id="authModalOverlay">
   <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
@@ -484,6 +482,27 @@
         <div class="field"><label>Email</label><input type="email" name="email" required></div>
         <div class="field"><label>Password</label><input type="password" name="password" required></div>
         <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Log in</button>
+        <button type="button" class="auth-link-btn" id="showResetPanelBtn">Forgot password?</button>
+      </form>
+    </div>
+
+    <!-- RESET PASSWORD -->
+    <div class="auth-panel" id="authPanel-reset">
+      <h3>Reset your password</h3>
+
+      <form id="resetRequestForm">
+        <p class="auth-panel-hint">Enter your account email and we'll send you a 6-digit code.</p>
+        <div class="field"><label>Email</label><input type="email" name="email" required></div>
+        <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Send code</button>
+        <button type="button" class="auth-link-btn" id="backToLoginBtn">Back to log in</button>
+      </form>
+
+      <form id="resetConfirmForm" style="display:none;">
+        <p class="auth-panel-hint">Check <strong id="resetConfirmEmail"></strong> for the code, then set a new password.</p>
+        <div class="field"><label>6-digit code</label><input type="text" name="code" inputmode="numeric" maxlength="6" required></div>
+        <div class="field"><label>New password</label><input type="password" name="new_password" required minlength="8"></div>
+        <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Reset password</button>
+        <button type="button" class="auth-link-btn" id="resendResetCodeBtn">Resend code</button>
       </form>
     </div>
 
@@ -529,10 +548,26 @@
     <div class="auth-panel" id="authPanel-account">
       <h3>Your account</h3>
       <div id="accountDetails"></div>
+
+      <div id="verifyEmailBox" class="verify-email-box">
+        <p class="verify-email-status">
+          <span id="verifyEmailBadge" class="verify-badge"></span>
+        </p>
+        <form id="verifyRequestForm">
+          <button type="submit" class="btn btn-marigold form-submit" style="width:100%;">Send verification code</button>
+        </form>
+        <form id="verifyConfirmForm" style="display:none;">
+          <div class="field"><label>6-digit code</label><input type="text" name="code" inputmode="numeric" maxlength="6" required></div>
+          <button type="submit" class="btn btn-marigold form-submit" style="width:100%;">Verify email</button>
+          <button type="button" class="auth-link-btn" id="resendVerifyCodeBtn">Resend code</button>
+        </form>
+      </div>
+
       <button type="button" class="btn btn-outline-dark form-submit" id="logoutBtn" style="width:100%;margin-top:16px;">Log out</button>
     </div>
   </div>
 </div>
 
+<script src="assets/script.js" defer></script>
 </body>
 </html>
