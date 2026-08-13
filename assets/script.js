@@ -449,6 +449,7 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
           '<p style="color:var(--text-muted);text-transform:capitalize;">' + (user.role || '').toLowerCase() + ' account</p>';
       }
       renderVerifyEmailBox(user);
+      renderDashboard(user);
       showPanel('account');
       // account panel isn't a tab, so clear tab active state
       document.querySelectorAll('.auth-tab-btn').forEach(function (b) { b.classList.remove('active'); });
@@ -458,6 +459,155 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
     overlay.classList.add('open');
   }
   function closeModal() { overlay.classList.remove('open'); }
+
+  // ---- ACCOUNT DASHBOARD (account panel) ----
+  // The whole reason login previously had no visible destination:
+  // nothing ever pulled StudentRequest/Assignment/profile data back
+  // into the page after auth succeeded. This is that wiring —
+  // parents see their own requests, tutors see their own profile +
+  // assignments, both read-only (creating/editing those things still
+  // happens through the existing lead forms / staff coordination).
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // Groups the many backend status values into three visual buckets
+  // so the badge styling doesn't need one CSS rule per enum value.
+  var STATUS_GROUPS = {
+    // StudentRequest.Status
+    OPEN: 'pending', MATCHED: 'active', DEMO_SCHEDULED: 'active',
+    CONVERTED: 'active', CLOSED: 'closed', CANCELLED: 'closed',
+    // Assignment.Status
+    PROPOSED: 'pending', DEMO_COMPLETED: 'active', ACCEPTED: 'active',
+    DECLINED: 'closed', ENDED: 'closed',
+  };
+  function statusPill(statusCode, statusLabel) {
+    var group = STATUS_GROUPS[statusCode] || 'pending';
+    return '<span class="status-pill status-pill--' + group + '">' + escapeHtml(statusLabel || statusCode || '') + '</span>';
+  }
+
+  // Subjects only come back as bare IDs on StudentRequest (unlike
+  // Assignment, which already resolves subject names server-side) --
+  // fetched once and cached so every request card doesn't re-fetch.
+  var subjectsCache = null;
+  function loadSubjectsMap() {
+    if (subjectsCache) return Promise.resolve(subjectsCache);
+    return fetch(TUTORO_API_BASE + '/api/catalog/subjects/')
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var list = data.results || data;
+        var map = {};
+        (Array.isArray(list) ? list : []).forEach(function (s) { map[s.id] = s.name; });
+        subjectsCache = map;
+        return map;
+      })
+      .catch(function () { return {}; });
+  }
+
+  function renderDashboard(user) {
+    var container = document.getElementById('dashboardSection');
+    if (!container) return;
+    container.innerHTML = '<p class="dashboard-loading">Loading...</p>';
+
+    if (user.role === 'PARENT') {
+      renderParentDashboard(container);
+    } else if (user.role === 'TUTOR') {
+      renderTutorDashboard(container);
+    } else {
+      container.innerHTML = '';
+    }
+  }
+
+  function renderParentDashboard(container) {
+    Promise.all([
+      authFetch('/api/matching/requests/').then(function (res) { return res.json(); }),
+      loadSubjectsMap(),
+    ])
+      .then(function (results) {
+        var data = results[0], subjectsMap = results[1];
+        var requests = data.results || data;
+        if (!Array.isArray(requests)) throw new Error('unexpected response');
+
+        var html = '<h4>Your tutoring requests</h4>';
+        if (!requests.length) {
+          html += '<p class="dashboard-empty">You haven\'t submitted a tutoring request yet. Use the "Find a tutor" form to get started.</p>';
+        } else {
+          html += requests.map(function (r) {
+            var subjectNames = (r.subjects || []).map(function (id) { return subjectsMap[id]; }).filter(Boolean).join(', ');
+            return (
+              '<div class="dash-card">' +
+                '<div class="dash-card-top">' +
+                  '<span class="dash-card-title">' + escapeHtml(r.student_name) + '</span>' +
+                  statusPill(r.status) +
+                '</div>' +
+                '<p class="dash-card-sub">' + escapeHtml(subjectNames || 'Subjects not set') + ' · ' + escapeHtml(r.area_name || '') + '</p>' +
+                '<div class="dash-card-meta">Requested ' + formatDate(r.created_at) + '</div>' +
+              '</div>'
+            );
+          }).join('');
+        }
+        container.innerHTML = html;
+      })
+      .catch(function () {
+        container.innerHTML = '<h4>Your tutoring requests</h4><p class="dashboard-error">Couldn\'t load your requests right now.</p>';
+      });
+  }
+
+  function renderTutorDashboard(container) {
+    Promise.all([
+      authFetch('/api/profiles/tutors/me/').then(function (res) { return res.json(); }),
+      authFetch('/api/matching/assignments/me/').then(function (res) { return res.json(); }),
+    ])
+      .then(function (results) {
+        var profile = results[0];
+        var assignmentsData = results[1];
+        var assignments = assignmentsData.results || assignmentsData;
+        if (!Array.isArray(assignments)) assignments = [];
+
+        var verified = profile.verification_status === 'VERIFIED';
+        var html = '<h4>Your profile</h4>' +
+          '<div class="dash-card">' +
+            '<div class="dash-profile-row"><span>Verification</span><span>' +
+              (verified ? '✓ Verified' : escapeHtml(profile.verification_status || 'Pending')) + '</span></div>' +
+            '<div class="dash-profile-row"><span>Accepting students</span><span>' + (profile.is_accepting_students ? 'Yes' : 'No') + '</span></div>' +
+            '<div class="dash-profile-row"><span>Rating</span><span>' +
+              (profile.total_reviews ? (Number(profile.rating_avg || 0).toFixed(1) + ' ★ (' + profile.total_reviews + ')') : 'No reviews yet') + '</span></div>' +
+          '</div>';
+
+        html += '<h4>Your assignments</h4>';
+        if (!assignments.length) {
+          html += '<p class="dashboard-empty">No students matched yet — once Tutoro pairs you with a family, it\'ll show up here.</p>';
+        } else {
+          html += assignments.map(function (a) {
+            return (
+              '<div class="dash-card">' +
+                '<div class="dash-card-top">' +
+                  '<span class="dash-card-title">' + escapeHtml(a.student_name) + '</span>' +
+                  statusPill(a.status, a.status_display) +
+                '</div>' +
+                '<p class="dash-card-sub">' + escapeHtml((a.subjects || []).join(', ') || 'Subjects not set') +
+                  ' · ' + escapeHtml(a.student_class || '') + ' · ' + escapeHtml(a.area_name || '') + '</p>' +
+                '<div class="dash-card-meta">Matched ' + formatDate(a.created_at) + '</div>' +
+              '</div>'
+            );
+          }).join('');
+        }
+        container.innerHTML = html;
+      })
+      .catch(function () {
+        container.innerHTML = '<p class="dashboard-error">Couldn\'t load your dashboard right now.</p>';
+      });
+  }
 
   // ---- EMAIL VERIFICATION (account panel) ----
   var verifyEmailBox = document.getElementById('verifyEmailBox');
