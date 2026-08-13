@@ -832,36 +832,55 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
   }
 
   handleSignup('parentSignupForm', '/api/auth/register/parent/', function (data) {
-    return {
+    var payload = {
       email: data.get('email'),
       phone_number: data.get('phone_number'),
       password: data.get('password'),
       full_name: data.get('full_name'),
       area: data.get('area'),
+      student_class: data.get('student_class') || '',
+      budget_fee: data.get('budget_fee') || '',
     };
+    // Only send timings the parent actually picked -- an empty string
+    // isn't a valid TimeField value, so it must stay out of the
+    // payload entirely rather than being sent as ''.
+    var startTime = data.get('preferred_start_time');
+    var endTime = data.get('preferred_end_time');
+    if (startTime) payload.preferred_start_time = startTime;
+    if (endTime) payload.preferred_end_time = endTime;
+    return payload;
   });
 
   handleSignup('tutorSignupForm', '/api/auth/register/tutor/', function (data, form) {
-    var subjectsSelect = form.querySelector('.subject-select-id');
-    var areasSelect = form.querySelector('.area-select-id');
+    var areaCheckboxes = form.querySelectorAll('.area-checkbox-group input[type="checkbox"]:checked');
+    // Tutor types subjects freely (e.g. "Maths, Physics, English") --
+    // split on commas, trim whitespace, and drop empty entries from a
+    // trailing/leading comma. The backend matches each name against
+    // the subject catalog and creates it if it's new.
+    var subjectsText = data.get('subjects') || '';
+    var subjects = subjectsText.split(',')
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 0; });
     return {
       email: data.get('email'),
       phone_number: data.get('phone_number'),
       password: data.get('password'),
       full_name: data.get('full_name'),
-      subjects: Array.from(subjectsSelect.selectedOptions).map(function (o) { return o.value; }),
-      preferred_areas: Array.from(areasSelect.selectedOptions).map(function (o) { return o.value; }),
+      subjects: subjects,
+      preferred_areas: Array.from(areaCheckboxes).map(function (c) { return c.value; }),
       experience_years: data.get('experience_years') || 0,
       expected_fee: data.get('expected_fee') || null,
     };
   });
 
-  // ---- Populate area/subject dropdowns inside the signup forms ----
+  // ---- Populate the parent signup area <select> and the tutor
+  // signup area checkboxes from the live backend catalog. ----
   fetch(TUTORO_API_BASE + '/api/catalog/areas/')
     .then(function (res) { return res.json(); })
     .then(function (data) {
       var areas = data.results || data;
       if (!Array.isArray(areas)) return;
+
       document.querySelectorAll('.area-select-id').forEach(function (select) {
         areas.forEach(function (area) {
           var opt = document.createElement('option');
@@ -870,24 +889,48 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
           select.appendChild(opt);
         });
       });
-    })
-    .catch(function () { /* signup form falls back to no options; user sees an empty select rather than a crash */ });
 
-  fetch(TUTORO_API_BASE + '/api/catalog/subjects/')
-    .then(function (res) { return res.json(); })
-    .then(function (data) {
-      var subjects = data.results || data;
-      if (!Array.isArray(subjects)) return;
-      document.querySelectorAll('.subject-select-id').forEach(function (select) {
-        subjects.forEach(function (subject) {
-          var opt = document.createElement('option');
-          opt.value = subject.id;
-          opt.textContent = subject.name;
-          select.appendChild(opt);
+      document.querySelectorAll('.area-checkbox-group').forEach(function (group) {
+        areas.forEach(function (area, i) {
+          var id = group.id ? group.id + '-' + i : 'areaCheckbox-' + i + '-' + Math.random().toString(36).slice(2);
+          var label = document.createElement('label');
+          label.className = 'checkbox-option';
+          var input = document.createElement('input');
+          input.type = 'checkbox';
+          input.name = 'preferred_areas';
+          input.value = area.id;
+          input.id = id;
+          label.setAttribute('for', id);
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(area.name));
+          group.appendChild(label);
         });
       });
     })
-    .catch(function () { /* same fallback as areas above */ });
+    .catch(function () { /* signup form falls back to no options; user sees an empty list rather than a crash */ });
+
+  // ---- Populate the "required timings" hour dropdowns (parent
+  // signup) with hourly slots covering typical tuition hours. ----
+  (function () {
+    var HOURS = []; // 6 AM through 9 PM start, so the last class can still run to 10 PM
+    for (var h = 6; h <= 22; h++) {
+      var value = (h < 10 ? '0' + h : h) + ':00';
+      var label = (h % 12 === 0 ? 12 : h % 12) + ':00 ' + (h < 12 || h === 24 ? 'AM' : 'PM');
+      HOURS.push({ value: value, label: label });
+    }
+    document.querySelectorAll('.hour-select-start, .hour-select-end').forEach(function (select) {
+      var placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = select.classList.contains('hour-select-start') ? 'Starting hour' : 'Ending hour';
+      select.appendChild(placeholder);
+      HOURS.forEach(function (hour) {
+        var opt = document.createElement('option');
+        opt.value = hour.value;
+        opt.textContent = hour.label;
+        select.appendChild(opt);
+      });
+    });
+  })();
 
   refreshNavBtnLabel();
 })();
