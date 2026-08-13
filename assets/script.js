@@ -616,13 +616,74 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
   var verifyConfirmForm = document.getElementById('verifyConfirmForm');
   var resendVerifyCodeBtn = document.getElementById('resendVerifyCodeBtn');
 
+  // Access tokens expire after 30 minutes (see backend SIMPLE_JWT
+  // settings) but a 7-day refresh token is issued alongside it and was
+  // being saved to localStorage and never used. Any authenticated
+  // action taken more than 30 minutes after login (verify email, load
+  // the dashboard, etc.) was hitting the API with a dead token and
+  // surfacing simplejwt's raw "Given token not valid for any token
+  // type" error straight to the user. authFetch now retries once
+  // through /api/auth/refresh/ on a 401 before giving up.
+  var refreshPromise = null; // dedupes concurrent refresh attempts
+
+  function refreshAccessToken() {
+    if (refreshPromise) return refreshPromise;
+    var refreshToken = localStorage.getItem(REFRESH_KEY);
+    if (!refreshToken) return Promise.reject(new Error('no refresh token'));
+
+    refreshPromise = fetch(TUTORO_API_BASE + '/api/auth/refresh/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh: refreshToken }),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('refresh failed');
+        return res.json();
+      })
+      .then(function (data) {
+        localStorage.setItem(TOKEN_KEY, data.access);
+        return data.access;
+      })
+      .finally(function () { refreshPromise = null; });
+
+    return refreshPromise;
+  }
+
+  function forceLogoutToLogin() {
+    clearSession();
+    refreshNavBtnLabel();
+    showPanel('login');
+  }
+
   function authFetch(path, options) {
     options = options || {};
     options.headers = options.headers || {};
     options.headers['Content-Type'] = 'application/json';
     var token = localStorage.getItem(TOKEN_KEY);
     if (token) options.headers['Authorization'] = 'Bearer ' + token;
-    return fetch(TUTORO_API_BASE + path, options);
+
+    return fetch(TUTORO_API_BASE + path, options).then(function (res) {
+      if (res.status !== 401) return res;
+      // Access token expired (or invalid) -- try the refresh token once,
+      // then retry the original request with the new access token.
+      return refreshAccessToken()
+        .then(function (newToken) {
+          var retryOptions = {};
+          for (var key in options) retryOptions[key] = options[key];
+          retryOptions.headers = {};
+          for (var h in options.headers) retryOptions.headers[h] = options.headers[h];
+          retryOptions.headers['Authorization'] = 'Bearer ' + newToken;
+          return fetch(TUTORO_API_BASE + path, retryOptions);
+        })
+        .catch(function () {
+          // Refresh token is also dead (7 days elapsed, or was never
+          // there) -- the session genuinely can't be salvaged. Log the
+          // user out and drop them back on the login tab rather than
+          // repeating this same failure on every retry.
+          forceLogoutToLogin();
+          return res; // caller's existing .catch still sees the failure
+        });
+    });
   }
 
   function renderVerifyEmailBox(user) {
