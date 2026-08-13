@@ -591,6 +591,29 @@ section:has(> .wrap > .route-card){
 }
 #accountDetails p{ margin:0 0 4px; font-size:14px; }
 
+.auth-link-btn{
+  display:block; width:100%; text-align:center; background:none; border:none;
+  color:var(--teal); font-family:var(--sans); font-size:13px; font-weight:600;
+  cursor:pointer; padding:12px 0 0; text-decoration:underline;
+}
+.auth-link-btn:hover{ color:var(--teal-dark, var(--teal)); }
+
+.auth-panel-hint{
+  font-size:13.5px; color:var(--text-muted); margin:0 0 16px; line-height:1.5;
+}
+
+.verify-email-box{
+  background:var(--paper-2); border-radius:10px; padding:16px; margin-top:14px;
+}
+.verify-email-box form{ margin-top:10px; }
+.verify-email-box form:first-of-type{ margin-top:0; }
+.verify-badge{
+  display:inline-flex; align-items:center; font-size:13px; font-weight:600;
+  padding:5px 10px; border-radius:999px;
+}
+.verify-badge.verified{ background:var(--teal-light); color:var(--teal); }
+.verify-badge.unverified{ background:#fdf1e3; color:#a15c00; }
+
 @media (max-width:480px){
   .auth-modal{ padding:26px 20px 22px; max-width:100%; }
   .field-row{ grid-template-columns:1fr; }
