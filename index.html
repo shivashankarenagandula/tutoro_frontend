@@ -479,8 +479,8 @@
     <div class="auth-panel active" id="authPanel-login">
       <h3 id="authModalTitle">Log in to Tutoro</h3>
       <form id="loginForm">
-        <div class="field"><label>Email</label><input type="email" name="email" required></div>
-        <div class="field"><label>Password</label><input type="password" name="password" required></div>
+        <div class="field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" name="email" placeholder="you@example.com" autocomplete="email" required></div>
+        <div class="field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" name="password" autocomplete="current-password" required></div>
         <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Log in</button>
         <button type="button" class="auth-link-btn" id="showResetPanelBtn">Forgot password?</button>
       </form>
@@ -492,7 +492,7 @@
 
       <form id="resetRequestForm">
         <p class="auth-panel-hint">Enter your account email and we'll send you a 6-digit code.</p>
-        <div class="field"><label>Email</label><input type="email" name="email" required></div>
+        <div class="field"><label for="resetEmail">Email</label><input type="email" id="resetEmail" name="email" placeholder="you@example.com" autocomplete="email" required></div>
         <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Send code</button>
         <button type="button" class="auth-link-btn" id="backToLoginBtn">Back to log in</button>
       </form>
@@ -515,31 +515,61 @@
       </div>
 
       <form id="parentSignupForm" class="auth-role-form active">
-        <div class="field"><label>Full name</label><input type="text" name="full_name" required></div>
-        <div class="field"><label>Email</label><input type="email" name="email" required></div>
-        <div class="field"><label>Phone number</label><input type="tel" name="phone_number" maxlength="13" required></div>
-        <div class="field"><label>Area</label>
-          <select name="area" class="area-select-id" required>
+        <div class="field"><label for="parentSignupName">Full name</label><input type="text" id="parentSignupName" name="full_name" required></div>
+        <div class="field"><label for="parentSignupEmail">Email</label><input type="email" id="parentSignupEmail" name="email" placeholder="you@example.com" autocomplete="email" required></div>
+        <div class="field"><label for="parentSignupPhone">Phone number</label><input type="tel" id="parentSignupPhone" name="phone_number" maxlength="13" required></div>
+        <div class="field"><label for="parentSignupArea">Area</label>
+          <select id="parentSignupArea" name="area" class="area-select-id" required>
             <option value="">Select your area</option>
           </select>
         </div>
-        <div class="field"><label>Password</label><input type="password" name="password" required minlength="8"></div>
+        <div class="field"><label for="parentSignupClass">Child's class</label>
+          <select id="parentSignupClass" name="student_class">
+            <option value="">Select class</option>
+            <option value="C1_5">Class 1–5</option>
+            <option value="C6_8">Class 6–8</option>
+            <option value="C9_10">Class 9–10</option>
+            <option value="C11_12">Class 11–12</option>
+            <option value="DEGREE">Degree</option>
+            <option value="COMPETITIVE">Competitive exam prep</option>
+          </select>
+        </div>
+        <div class="field"><label for="parentSignupBudget">Affordable fees (optional)</label>
+          <input type="text" id="parentSignupBudget" name="budget_fee" placeholder="e.g. ₹600/hr or ₹4000/month">
+        </div>
+        <div class="field">
+          <label>Required timings (optional)</label>
+          <div class="field-row">
+            <div class="field" style="margin-bottom:0;">
+              <label for="parentSignupStartTime" class="field-sublabel">Starting hour</label>
+              <select id="parentSignupStartTime" name="preferred_start_time" class="hour-select-start"></select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label for="parentSignupEndTime" class="field-sublabel">Ending hour</label>
+              <select id="parentSignupEndTime" name="preferred_end_time" class="hour-select-end"></select>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label for="parentSignupPassword">Password</label><input type="password" id="parentSignupPassword" name="password" autocomplete="new-password" required minlength="8"></div>
         <button type="submit" class="btn btn-teal form-submit" style="width:100%;">Create parent account</button>
       </form>
 
       <form id="tutorSignupForm" class="auth-role-form">
-        <div class="field"><label>Full name</label><input type="text" name="full_name" required></div>
-        <div class="field"><label>Email</label><input type="email" name="email" required></div>
-        <div class="field"><label>Phone number</label><input type="tel" name="phone_number" maxlength="13" required></div>
-        <div class="field"><label>Subjects you teach</label>
-          <select name="subjects" class="subject-select-id" multiple size="4" required></select>
+        <div class="field"><label for="tutorSignupName">Full name</label><input type="text" id="tutorSignupName" name="full_name" required></div>
+        <div class="field"><label for="tutorSignupEmail">Email</label><input type="email" id="tutorSignupEmail" name="email" placeholder="you@example.com" autocomplete="email" required></div>
+        <div class="field"><label for="tutorSignupPhone">Phone number</label><input type="tel" id="tutorSignupPhone" name="phone_number" maxlength="13" required></div>
+        <div class="field"><label for="tutorSignupSubjects">Subjects you teach</label>
+          <input type="text" id="tutorSignupSubjects" name="subjects" placeholder="Maths, Physics, English…" required>
         </div>
-        <div class="field"><label>Areas you cover</label>
-          <select name="preferred_areas" class="area-select-id" multiple size="4" required></select>
+        <div class="field">
+          <label id="tutorSignupAreasLabel">Areas you cover</label>
+          <div class="checkbox-group area-checkbox-group" role="group" aria-labelledby="tutorSignupAreasLabel">
+            <!-- populated with one checkbox per area by assets/script.js -->
+          </div>
         </div>
-        <div class="field"><label>Years of experience</label><input type="number" name="experience_years" min="0"></div>
-        <div class="field"><label>Expected fee (optional)</label><input type="text" name="expected_fee" placeholder="e.g. 600"></div>
-        <div class="field"><label>Password</label><input type="password" name="password" required minlength="8"></div>
+        <div class="field"><label for="tutorSignupExperience">Years of experience</label><input type="number" id="tutorSignupExperience" name="experience_years" min="0"></div>
+        <div class="field"><label for="tutorSignupFee">Expected fee (optional)</label><input type="text" id="tutorSignupFee" name="expected_fee" placeholder="e.g. 600"></div>
+        <div class="field"><label for="tutorSignupPassword">Password</label><input type="password" id="tutorSignupPassword" name="password" autocomplete="new-password" required minlength="8"></div>
         <button type="submit" class="btn btn-marigold form-submit" style="width:100%;">Create tutor account</button>
       </form>
     </div>
