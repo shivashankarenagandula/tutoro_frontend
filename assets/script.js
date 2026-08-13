@@ -448,6 +448,7 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
           '<p style="color:var(--text-muted);">' + (user.email || '') + '</p>' +
           '<p style="color:var(--text-muted);text-transform:capitalize;">' + (user.role || '').toLowerCase() + ' account</p>';
       }
+      renderVerifyEmailBox(user);
       showPanel('account');
       // account panel isn't a tab, so clear tab active state
       document.querySelectorAll('.auth-tab-btn').forEach(function (b) { b.classList.remove('active'); });
@@ -457,6 +458,108 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
     overlay.classList.add('open');
   }
   function closeModal() { overlay.classList.remove('open'); }
+
+  // ---- EMAIL VERIFICATION (account panel) ----
+  var verifyEmailBox = document.getElementById('verifyEmailBox');
+  var verifyEmailBadge = document.getElementById('verifyEmailBadge');
+  var verifyRequestForm = document.getElementById('verifyRequestForm');
+  var verifyConfirmForm = document.getElementById('verifyConfirmForm');
+  var resendVerifyCodeBtn = document.getElementById('resendVerifyCodeBtn');
+
+  function authFetch(path, options) {
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers['Content-Type'] = 'application/json';
+    var token = localStorage.getItem(TOKEN_KEY);
+    if (token) options.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(TUTORO_API_BASE + path, options);
+  }
+
+  function renderVerifyEmailBox(user) {
+    if (!verifyEmailBox || !verifyEmailBadge) return;
+    if (user.is_verified) {
+      verifyEmailBadge.textContent = '✓ Email verified';
+      verifyEmailBadge.className = 'verify-badge verified';
+      if (verifyRequestForm) verifyRequestForm.style.display = 'none';
+      if (verifyConfirmForm) verifyConfirmForm.style.display = 'none';
+    } else {
+      verifyEmailBadge.textContent = 'Email not verified yet';
+      verifyEmailBadge.className = 'verify-badge unverified';
+      if (verifyConfirmForm) verifyConfirmForm.style.display = 'none';
+      if (verifyRequestForm) verifyRequestForm.style.display = 'block';
+    }
+  }
+
+  function requestVerifyCode(form) {
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var original = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
+    return authFetch('/api/auth/otp/request/', { method: 'POST' })
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (d) { throw d; });
+        return res.json();
+      })
+      .then(function () {
+        if (verifyRequestForm) verifyRequestForm.style.display = 'none';
+        if (verifyConfirmForm) {
+          verifyConfirmForm.style.display = 'block';
+          verifyConfirmForm.reset();
+        }
+      })
+      .catch(function (err) {
+        showFormError(form, (err && err.detail) || "Couldn't send the code right now. Please try again shortly.");
+      })
+      .finally(function () {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = original; }
+      });
+  }
+
+  if (verifyRequestForm) {
+    verifyRequestForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      requestVerifyCode(verifyRequestForm);
+    });
+  }
+  if (resendVerifyCodeBtn) {
+    resendVerifyCodeBtn.addEventListener('click', function () {
+      requestVerifyCode(verifyConfirmForm);
+    });
+  }
+  if (verifyConfirmForm) {
+    verifyConfirmForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = new FormData(verifyConfirmForm);
+      var submitBtn = verifyConfirmForm.querySelector('button[type="submit"]');
+      var original = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+
+      authFetch('/api/auth/otp/verify/', {
+        method: 'POST',
+        body: JSON.stringify({ code: data.get('code') }),
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (d) { throw d; });
+          return res.json();
+        })
+        .then(function () {
+          var user = getUser();
+          if (user) {
+            user.is_verified = true;
+            localStorage.setItem(USER_KEY, JSON.stringify(user));
+            renderVerifyEmailBox(user);
+          }
+        })
+        .catch(function (err) {
+          showFormError(verifyConfirmForm, (err && err.detail) || 'That code is invalid or has expired.');
+        })
+        .finally(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = original;
+        });
+    });
+  }
 
   navBtn.addEventListener('click', openModal);
   closeBtn.addEventListener('click', closeModal);
@@ -534,6 +637,7 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
             email: payload.email || data.get('email'),
             role: payload.role || '',
             full_name: payload.full_name || '',
+            is_verified: !!payload.is_verified,
           });
           refreshNavBtnLabel();
           closeModal();
@@ -585,6 +689,7 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
             email: payload.email || data.get('email'),
             role: payload.role || '',
             full_name: data.get('full_name') || '',
+            is_verified: !!payload.is_verified,
           });
           refreshNavBtnLabel();
           closeModal();
@@ -592,6 +697,132 @@ handleFormSubmit('tutorForm', 'tutorSuccess');
         })
         .catch(function (err) {
           showFormError(form, firstErrorMessage(err));
+        })
+        .finally(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = original;
+        });
+    });
+  }
+
+  // ---- FORGOT / RESET PASSWORD ----
+  var resetRequestForm = document.getElementById('resetRequestForm');
+  var resetConfirmForm = document.getElementById('resetConfirmForm');
+  var showResetPanelBtn = document.getElementById('showResetPanelBtn');
+  var backToLoginBtn = document.getElementById('backToLoginBtn');
+  var resendResetCodeBtn = document.getElementById('resendResetCodeBtn');
+  var resetConfirmEmailEl = document.getElementById('resetConfirmEmail');
+  var lastResetEmail = '';
+
+  function showResetRequestStep() {
+    if (resetConfirmForm) resetConfirmForm.style.display = 'none';
+    if (resetRequestForm) resetRequestForm.style.display = 'block';
+  }
+  function showResetConfirmStep(email) {
+    lastResetEmail = email;
+    if (resetConfirmEmailEl) resetConfirmEmailEl.textContent = email;
+    if (resetRequestForm) resetRequestForm.style.display = 'none';
+    if (resetConfirmForm) {
+      resetConfirmForm.style.display = 'block';
+      resetConfirmForm.reset();
+    }
+  }
+
+  if (showResetPanelBtn) {
+    showResetPanelBtn.addEventListener('click', function () {
+      showResetRequestStep();
+      if (resetRequestForm) resetRequestForm.reset();
+      showPanel('reset');
+      document.querySelectorAll('.auth-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+    });
+  }
+  if (backToLoginBtn) {
+    backToLoginBtn.addEventListener('click', function () { showPanel('login'); });
+  }
+
+  function requestResetCode(email, form) {
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var original = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
+    return fetch(TUTORO_API_BASE + '/api/auth/password-reset/request/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email }),
+    })
+      .then(function (res) { return res.json().catch(function () { return {}; }); })
+      .then(function () {
+        // Backend always returns the same generic message whether or
+        // not the account exists (by design, to prevent email
+        // enumeration) -- so we always advance to the code-entry step.
+        showResetConfirmStep(email);
+      })
+      .catch(function () {
+        showFormError(form, "Couldn't send the code right now. Please try again shortly.");
+      })
+      .finally(function () {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = original; }
+      });
+  }
+
+  if (resetRequestForm) {
+    resetRequestForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = new FormData(resetRequestForm).get('email');
+      requestResetCode(email, resetRequestForm);
+    });
+  }
+
+  if (resendResetCodeBtn) {
+    resendResetCodeBtn.addEventListener('click', function () {
+      if (!lastResetEmail) return;
+      requestResetCode(lastResetEmail, resetConfirmForm);
+    });
+  }
+
+  if (resetConfirmForm) {
+    resetConfirmForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var data = new FormData(resetConfirmForm);
+      var submitBtn = resetConfirmForm.querySelector('button[type="submit"]');
+      var original = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Resetting...';
+
+      fetch(TUTORO_API_BASE + '/api/auth/password-reset/confirm/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: lastResetEmail,
+          code: data.get('code'),
+          new_password: data.get('new_password'),
+        }),
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (d) { throw d; });
+          return res.json();
+        })
+        .then(function () {
+          showResetRequestStep();
+          showPanel('login');
+          document.querySelectorAll('.auth-tab-btn').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.authTab === 'login');
+          });
+          if (loginForm) {
+            loginForm.reset();
+            var emailField = loginForm.querySelector('input[name="email"]');
+            if (emailField) emailField.value = lastResetEmail;
+            showFormError(loginForm, 'Password reset. Please log in with your new password.');
+            var errBox = loginForm.querySelector('.auth-form-error');
+            if (errBox) {
+              errBox.style.background = '#eaf6ee';
+              errBox.style.color = '#1e6b3a';
+              errBox.style.borderColor = '#c9e9d3';
+            }
+          }
+        })
+        .catch(function (err) {
+          showFormError(resetConfirmForm, (err && err.detail) || 'That code is invalid or has expired.');
         })
         .finally(function () {
           submitBtn.disabled = false;
